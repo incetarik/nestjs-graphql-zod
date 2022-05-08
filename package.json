@@ -1,0 +1,48 @@
+{
+  "name": "nestjs-graphql-zod",
+  "version": "0.1.0",
+  "description": "A library for integrating zod validation objects into nestjs graphql objects.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "prepublish": "tsc",
+    "release": "release-it"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/incetarik/nestjs-graphql-zod.git"
+  },
+  "keywords": [
+    "nestjs",
+    "zod",
+    "resolver",
+    "decorator",
+    "graphql",
+    "validation"
+  ],
+  "author": "Tarık İnce <incetarik@hotmail.com>",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/incetarik/nestjs-graphql-zod/issues"
+  },
+  "homepage": "https://github.com/incetarik/nestjs-graphql-zod#readme",
+  "dependencies": {
+    "@nestjs/graphql": "^10.0.10",
+    "graphql": "^16.3.0",
+    "@nestjs/common": "^8.4.4",
+    "reflect-metadata": "^0.1.13",
+    "@nestjs/core": "^8.4.4",
+    "rxjs": "^7.5.5",
+    "zod": "^3.15.1",
+    "class-transformer": "0.5.1"
+  },
+  "peerDependencies": {
+    "@nestjs/graphql": ">= 10.0",
+    "@nestjs/core": ">= 8.0"
+  },
+  "devDependencies": {
+    "typescript": "4.6.3",
+    "release-it": "*"
+  }
+}
