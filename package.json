@@ -1,6 +1,6 @@
 {
   "name": "nestjs-graphql-zod",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library for integrating zod validation objects into nestjs graphql objects.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
