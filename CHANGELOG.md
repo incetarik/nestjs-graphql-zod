@@ -3,9 +3,15 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
-## [0.1.0] - 2022-05-09
+## [0.1.2] - 2022-05-08
+### Changed
+Type checking strategy is now changed to constructor name comparison.
+
+## [0.1.1] - 2022-05-08
 ### Added
 The initial version of the package.
 
-[Unreleased]: https://github.com/incetarik/nestjs-prisma-dynamic-resolvers/compare/v1.0.0...HEAD
-[0.1.0]: https://github.com/incetarik/nestjs-prisma-dynamic-resolvers/releases/tag/0.1.0
+[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/v1.0.0...HEAD
+
+[0.1.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/incetarik/nestjs-graphql-zod/releases/tag/0.1.1
