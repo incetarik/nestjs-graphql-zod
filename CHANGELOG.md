@@ -3,6 +3,10 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [0.1.5] - 2022-05-08
+### Changed
+When an error occurs, the `issues` are placed in `BadRequestException` body.
+
 ## [0.1.3] - 2022-05-08
 ### Changed
 Type checking strategy is moved to a function file, all type checking will be

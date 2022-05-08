@@ -46,14 +46,7 @@ export function MethodWithZod<T extends zod.AnyZodObject, O extends BaseTypeOpti
         return result
           .then(output => input.parseAsync(output))
           .then((output) => plainToInstance(model, output))
-          .catch((error: zod.ZodError) => {
-            const messages = error.issues.reduce((prev, curr) => {
-              prev[ curr.path.join('.') ] = curr.message
-              return prev
-            }, {} as any)
-
-            return new BadRequestException(messages)
-          })
+          .catch((error: zod.ZodError) => new BadRequestException(error.issues))
       }
       else {
         const parseResult = input.safeParse(result)
@@ -61,12 +54,7 @@ export function MethodWithZod<T extends zod.AnyZodObject, O extends BaseTypeOpti
           return plainToInstance(model, parseResult.data)
         }
         else {
-          const messages = parseResult.error.issues.reduce((prev, curr) => {
-            prev[ curr.path.join('.') ] = curr.message
-            return prev
-          }, {} as any)
-
-          return new BadRequestException(messages)
+          return new BadRequestException(parseResult.error.issues)
         }
       }
     }
