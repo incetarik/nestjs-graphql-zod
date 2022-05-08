@@ -5,6 +5,7 @@ import { Field, NullableList } from '@nestjs/graphql'
 import { IModelFromZodOptions } from '../model-from-zod'
 import { buildEnumType } from './build-enum-type'
 import { createZodPropertyDescriptor } from './create-zod-property-descriptor'
+import { isZodInstance } from './is-zod-instance'
 import { zodToTypeInfo } from './zod-to-type-info'
 
 /**
@@ -69,7 +70,7 @@ export function parseShape<T extends zod.AnyZodObject>(zodInput: T, options: IMo
 
     // Changed constructor name checking because of the version mismatch, the
     // objects may have different prototypes even if they both are zod objects.
-    if (PARSED_TYPES.some(it => prop.constructor.name === it[ 'name' ])) {
+    if (PARSED_TYPES.some(it => isZodInstance(it, prop))) {
       propertyDescriptor = createZodPropertyDescriptor(key, prop, options)
     }
     else {

@@ -7,6 +7,7 @@ import { getRegisterCount } from './constants'
 import { toTitleCase } from './to-title-case'
 import { withSuffix } from './with-suffix'
 import { ZodTypeInfo } from './zod-to-type-info'
+import { isZodInstance } from './is-zod-instance'
 
 /**
  * Builds an enum type for GraphQL schema.
@@ -27,7 +28,7 @@ export function buildEnumType<T extends zod.AnyZodObject>(
 ): object {
 
   const { type } = typeInfo
-  if (type instanceof zod.ZodEnum) {
+  if (isZodInstance(zod.ZodEnum, type)) {
     const { Enum } = type
 
     const incompatibleKey = getFirstIncompatibleEnumKey(Enum)

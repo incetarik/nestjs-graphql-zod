@@ -4,6 +4,7 @@ import * as zod from 'zod'
 import { Float, Int } from '@nestjs/graphql'
 
 import { modelFromZod } from '../model-from-zod'
+import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
 
 export interface ZodTypeInfo {
@@ -87,7 +88,7 @@ export interface ZodTypeInfo {
  * @return {ZodTypeInfo} The {@link ZodTypeInfo} of the property.
  */
 export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod.ZodTypeAny, options: IModelFromZodOptions<T>): ZodTypeInfo {
-  if (prop instanceof zod.ZodArray) {
+  if (isZodInstance(zod.ZodArray, prop)) {
     const data = zodToTypeInfo(key, prop.element, options)
 
     const {
@@ -107,28 +108,28 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
       isItemOptional,
     }
   }
-  else if (prop instanceof zod.ZodBoolean) {
+  else if (isZodInstance(zod.ZodBoolean, prop)) {
     return {
       type: Boolean,
       isOptional: prop.isOptional(),
       isNullable: prop.isNullable(),
     }
   }
-  if (prop instanceof zod.ZodString) {
+  if (isZodInstance(zod.ZodString, prop)) {
     return {
       type: String,
       isOptional: prop.isOptional(),
       isNullable: prop.isNullable(),
     }
   }
-  else if (prop instanceof zod.ZodNumber) {
+  else if (isZodInstance(zod.ZodNumber, prop)) {
     return {
       type: prop.isInt ? Int : Float,
       isOptional: prop.isOptional(),
       isNullable: prop.isNullable(),
     }
   }
-  else if (prop instanceof zod.ZodOptional) {
+  else if (isZodInstance(zod.ZodOptional, prop)) {
     const {
       type,
       isEnum,
@@ -147,7 +148,7 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
       isNullable: prop.isNullable(),
     }
   }
-  else if (prop instanceof zod.ZodObject) {
+  else if (isZodInstance(zod.ZodObject, prop)) {
     const isNullable = prop.isNullable() || prop.isOptional()
 
     const nestedOptions = {
@@ -166,7 +167,7 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
       isOptional: prop.isOptional(),
     }
   }
-  else if (prop instanceof zod.ZodEnum) {
+  else if (isZodInstance(zod.ZodEnum, prop)) {
     return {
       type: prop,
       isNullable: prop.isNullable(),
@@ -175,6 +176,6 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
     }
   }
   else {
-    throw new Error('')
+    throw new Error(`Unsupported type info of Key("${key}")`)
   }
 }
