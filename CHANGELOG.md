@@ -22,6 +22,7 @@ The initial version of the package.
 
 [Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/v1.0.0...HEAD
 
+[0.1.5]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.3...0.1.5
 [0.1.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/incetarik/nestjs-graphql-zod/releases/tag/0.1.1
