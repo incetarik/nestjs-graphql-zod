@@ -1,6 +1,8 @@
 import { IModelFromZodOptions } from 'src/model-from-zod'
 import * as zod from 'zod'
 
+import { isZodInstance } from './is-zod-instance'
+
 /**
  * Creates a property descriptor that provides `get` and `set` functions
  * that are using `parse` or `safeParse` methods of the `zod` library.
@@ -13,7 +15,11 @@ import * as zod from 'zod'
  * @return {PropertyDescriptor} A {@link PropertyDescriptor}.
  */
 export function createZodPropertyDescriptor<T extends object>(key: keyof T, input: zod.ZodTypeAny, opts: IModelFromZodOptions<T>): PropertyDescriptor {
-  let localVariable: any = input._def
+  let localVariable: any
+
+  if (isZodInstance(zod.ZodDefault, input)) {
+    localVariable = input._def.defaultValue()
+  }
 
   const {
     safe,
