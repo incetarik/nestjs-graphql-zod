@@ -5,6 +5,7 @@ import { Field, NullableList } from '@nestjs/graphql'
 import { IModelFromZodOptions } from '../model-from-zod'
 import { buildEnumType } from './build-enum-type'
 import { createZodPropertyDescriptor } from './create-zod-property-descriptor'
+import { generateDefaults } from './generate-defaults'
 import { isZodInstance } from './is-zod-instance'
 import { zodToTypeInfo } from './zod-to-type-info'
 
@@ -41,6 +42,16 @@ export interface ParsedField {
   decorateFieldProperty: PropertyDecorator
 }
 
+const PARSED_TYPES = [
+  zod.ZodArray,
+  zod.ZodBoolean,
+  zod.ZodString,
+  zod.ZodNumber,
+  zod.ZodEnum,
+  zod.ZodOptional,
+  zod.ZodObject,
+] as const
+
 /**
  * Parses a zod input object with given options.
  *
@@ -52,15 +63,6 @@ export interface ParsedField {
  */
 export function parseShape<T extends zod.AnyZodObject>(zodInput: T, options: IModelFromZodOptions<T> = {}) {
   const parsedShapes: ParsedField[] = []
-  const PARSED_TYPES = [
-    zod.ZodArray,
-    zod.ZodBoolean,
-    zod.ZodString,
-    zod.ZodNumber,
-    zod.ZodEnum,
-    zod.ZodOptional,
-    zod.ZodObject,
-  ] as const
 
   for (const _key in zodInput.shape) {
     const key = _key as (keyof T) & string
@@ -94,7 +96,7 @@ export function parseShape<T extends zod.AnyZodObject>(zodInput: T, options: IMo
 
     const { type: fieldType } = elementType
 
-    let defaultValue: typeof prop._def | undefined = prop._def
+    let defaultValue = generateDefaults(prop)
     let nullable: boolean | NullableList = isNullable || isOptional
 
     if (isOfArray) {
