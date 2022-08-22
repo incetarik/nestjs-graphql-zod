@@ -4,7 +4,10 @@ import * as zod from 'zod'
 import { BadRequestException } from '@nestjs/common'
 import { Subscription, SubscriptionOptions as SO } from '@nestjs/graphql'
 
-import { IModelFromZodOptionsWithMapper, modelFromZod } from '../model-from-zod'
+import {
+  IModelFromZodOptionsWithMapper,
+  modelFromZod,
+} from '../../model-from-zod'
 
 export interface SubscriptionOptions<T extends object> extends SO {
   /**
@@ -57,7 +60,7 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: 
  * 
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, options: SubscriptionOptions<zod.infer<T>>): MethodDecorator
+export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, options: SubscriptionOptions<T>): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
@@ -74,8 +77,8 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, option
  * 
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: string, options: Pick<SubscriptionOptions<zod.infer<T>>, 'filter' | 'resolve' | 'zod'>): MethodDecorator
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | SubscriptionOptions<zod.infer<T>>, pickedOptions?: Pick<SubscriptionOptions<zod.infer<T>>, 'filter' | 'resolve' | 'zod'>) {
+export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: string, options: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>): MethodDecorator
+export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | SubscriptionOptions<T>, pickedOptions?: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>) {
   let zodOptions: IModelFromZodOptionsWithMapper<T> | undefined
 
   if (typeof nameOrOptions === 'object') {

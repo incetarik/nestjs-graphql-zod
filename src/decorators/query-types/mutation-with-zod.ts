@@ -2,8 +2,8 @@ import * as zod from 'zod'
 
 import { Mutation, MutationOptions as MO } from '@nestjs/graphql'
 
-import { IModelFromZodOptionsWithMapper } from '../model-from-zod'
-import { MethodWithZod } from './common'
+import { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
+import { MethodWithZod } from '../common'
 
 export interface MutationOptions<T extends object> extends MO {
   /**
@@ -51,10 +51,10 @@ export function MutationWithZod<T extends zod.AnyZodObject>(input: T, name: stri
  * @export
  * @template T The type of the zod object input.
  * @param {T} input The zod input object.
- * @param {MutationOptions<zod.infer<T>>} options The options for query method.
+ * @param {MutationOptions<T>} options The options for query method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T, options: MutationOptions<zod.infer<T>>): MethodDecorator
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | MutationOptions<zod.infer<T>>) {
-  return MethodWithZod(input, nameOrOptions!, Mutation)
+export function MutationWithZod<T extends zod.AnyZodObject>(input: T, options: MutationOptions<T>): MethodDecorator
+export function MutationWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | MutationOptions<T>) {
+  return MethodWithZod(input, nameOrOptions, Mutation)
 }

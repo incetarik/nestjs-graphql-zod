@@ -1,76 +1,94 @@
-import { plainToInstance } from 'class-transformer'
-import * as zod from 'zod'
+import { AnyZodObject } from 'zod'
 
-import { BadRequestException } from '@nestjs/common'
-import { BaseTypeOptions, ReturnTypeFunc } from '@nestjs/graphql'
+import { BaseTypeOptions } from '@nestjs/graphql'
 
 import { IModelFromZodOptionsWithMapper, modelFromZod } from '../model-from-zod'
+import { decorateWithZodInput } from './decorate-with-zod-input'
+import { makeDecoratorFromFactory } from './make-decorator-from-factory'
+import { DynamicZodModelClass, GraphQLMDF } from './types'
+import { WrapWithZodOptions } from './zod-options-wrapper.interface'
 
-export interface BaseOptions<T extends object> extends BaseTypeOptions {
-  /**
-   * Options for model creation from `zod`.
-   *
-   * @type {IModelFromZodOptionsWithMapper<T>}
-   * @memberof QueryOptions
-   */
-  zod?: IModelFromZodOptionsWithMapper<T>
+type BaseOptions<T extends object> = WrapWithZodOptions<BaseTypeOptions, T>
+
+/**
+ * Returns a method decorator that is built with `zod` validation object.
+ *
+ * @export
+ * @template T The type of the `zod` validation object.
+ * @param {T} input The `zod` validation object.
+ * @param {(string | BaseOptions<T> | undefined)} nameOrOptions The name or
+ * the options.
+ * 
+ * @param {GraphQLMDF<BaseTypeOptions>} graphqlDecoratorFactory The actual
+ * decorator factory function.
+ * 
+ * @param {DynamicZodModelClass<T>} model The dynamically built model class from
+ * `zod` validation object.
+ * 
+ * @return {MethodDecorator} A method decorator.
+ */
+export function MethodWithZodModel<T extends AnyZodObject>(
+  input: T,
+  nameOrOptions: string | BaseOptions<T> | undefined,
+  graphqlDecoratorFactory: GraphQLMDF<BaseTypeOptions>,
+  model: DynamicZodModelClass<T>
+) {
+  return function _ModelWithZod(
+    target: Record<string, any>,
+    methodName: string,
+    descriptor: PropertyDescriptor
+  ) {
+    let newDescriptor = descriptor || {}
+
+    const originalFunction = descriptor?.value ?? target[ methodName ]
+    const decoratedFunction
+      = decorateWithZodInput(originalFunction, input, model)
+
+    newDescriptor.value = decoratedFunction
+
+    if (!descriptor) {
+      Object.defineProperty(target, methodName, newDescriptor)
+    }
+
+    const methodDecorator = makeDecoratorFromFactory(
+      nameOrOptions,
+      graphqlDecoratorFactory,
+      model
+    )
+
+    methodDecorator(target, methodName, newDescriptor)
+  }
 }
 
-type NoInputHandler = (() => MethodDecorator)
-type NameInputHandler = ((name: string) => MethodDecorator)
-type OptionInputHandler<O extends BaseTypeOptions> = (typeFunc: ReturnTypeFunc, options?: O) => MethodDecorator
-
-type Handler<O extends BaseTypeOptions>
-  =
-  | NoInputHandler
-  | NameInputHandler
-  | OptionInputHandler<O>
-
-export function MethodWithZod<T extends zod.AnyZodObject, O extends BaseTypeOptions>(input: T, nameOrOptions: string | BaseOptions<zod.infer<T>>, actualHandler: Handler<O>) {
+/**
+ * Returns a method decorator that is built with `zod` validation object.
+ *
+ * @export
+ * @template T The type of the `zod` validation object.
+ * @param {T} input The `zod` validation object.
+ * @param {(string | BaseOptions<T> | undefined)} nameOrOptions The name or
+ * the options.
+ * 
+ * @param {GraphQLMDF<BaseTypeOptions>} graphqlDecoratorFactory The actual
+ * decorator factory function.
+ * 
+ * @return {MethodDecorator} A method decorator.
+ */
+export function MethodWithZod<T extends AnyZodObject>(
+  input: T,
+  nameOrOptions: string | BaseOptions<T> | undefined,
+  graphqlDecoratorFactory: GraphQLMDF<BaseTypeOptions>
+) {
   let zodOptions: IModelFromZodOptionsWithMapper<T> | undefined
 
   if (typeof nameOrOptions === 'object') {
     zodOptions = nameOrOptions.zod
   }
 
-  const model = modelFromZod(input, zodOptions)
-
-  return function _QueryWithZod(target: any, methodName: string, descriptor: PropertyDescriptor) {
-    let newDescriptor = descriptor || {}
-
-    const originalFunction = descriptor?.value ?? target[ methodName ]
-
-    newDescriptor.value = function _queryWithZod(...args: any[]) {
-      const result = originalFunction.apply(this, args)
-      if (result instanceof Promise) {
-        return result
-          .then(output => input.parseAsync(output))
-          .then((output) => plainToInstance(model, output))
-          .catch((error: zod.ZodError) => new BadRequestException(error.issues))
-      }
-      else {
-        const parseResult = input.safeParse(result)
-        if (parseResult.success) {
-          return plainToInstance(model, parseResult.data)
-        }
-        else {
-          return new BadRequestException(parseResult.error.issues)
-        }
-      }
-    }
-
-    if (!descriptor) {
-      Object.defineProperty(target, methodName, newDescriptor)
-    }
-
-    if (typeof nameOrOptions === 'string') {
-      (actualHandler as NameInputHandler)(nameOrOptions)(target, methodName, newDescriptor)
-    }
-    else if (typeof nameOrOptions === 'object') {
-      const { zod, ...rest } = nameOrOptions;
-      (actualHandler as OptionInputHandler<O>)(() => model, rest as O)(target, methodName, newDescriptor)
-    }
-
-    (actualHandler as OptionInputHandler<O>)(() => model)(target, methodName, newDescriptor)
-  }
+  return MethodWithZodModel(
+    input,
+    nameOrOptions,
+    graphqlDecoratorFactory,
+    modelFromZod(input, zodOptions)
+  )
 }

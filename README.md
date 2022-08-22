@@ -177,6 +177,86 @@ type ExampleUser_Settings_Profile {
 }
 ```
 
+### InputType Example
+```ts
+import * as zod from 'zod'
+import { InputZodType } from 'nestjs-graphql-zod'
+
+const RequestSchema = zod.object({
+  username: zod.string().min(5).max(20).describe('The username of the request owner'),
+  email: zod.string().email().describe('The email of the user'),
+  changes: zod.object({
+    themeSelection: zod.enum([ 'light', 'dark' ]).describe('The theme type'),
+    permissions: zod.object({
+      add: zod.number().array().describe('The flags added to the user permissions'),
+      remove: zod.number().array().describe('The flags removed to the user permissions'),
+      isAdmin: zod.boolean().describe('Indicates if the user is an admin')
+    }).describe('The permissions change set of the user')
+  }).describe('The changes made by the user')
+}).describe('RequestSchema: The request schema type for changing user data')
+
+class ExampleResolver() {
+  @Query(() => Boolean)
+  processRequest(@InputZodType(RequestSchema) input: InputZodType.Of<typeof RequestSchema>) {
+    // The input will contain all the properties validated according to the
+    // schema defined above. If the validation was failed, the user will get
+    // BadRequest error and this method will not be called.
+
+    // The @InputZodType(Schema) decorator is behaving like 
+    // @Args() + @InputType() decorators.
+    //
+    // The @InputType() is applied to underlying class, the @Args() is applied
+    // to take the input as the parameter. By default, the name of the
+    // property will be 'input'. This can be changed through the overloads
+    // of the decorator.
+  }
+}
+```
+
+With the example above, you will have the following generated `GraphQL` schema
+type if you use `code-first` approach:
+
+```gql
+"""The request schema type for changing user data"""
+input RequestSchema {
+  """The username of the request owner"""
+  username: String!
+
+  """The email of the user"""
+  email: String!
+
+  """The changes made by the user"""
+  changes: RequestSchema_Changes!
+}
+
+"""The request schema type for changing user data"""
+input RequestSchema_Changes {
+  """The theme type"""
+  themeSelection: RequestSchema_Changes_ThemeSelectionEnum_0!
+
+  """The permissions change set of the user"""
+  permissions: RequestSchema_Changes_Permissions!
+}
+
+"""The theme type"""
+enum RequestSchema_Changes_ThemeSelectionEnum_0 {
+  light
+  dark
+}
+
+"""The request schema type for changing user data"""
+input RequestSchema_Changes_Permissions {
+  """The flags added to the user permissions"""
+  add: [Float!]!
+
+  """The flags removed to the user permissions"""
+  remove: [Float!]!
+
+  """Indicates if the user is an admin"""
+  isAdmin: Boolean!
+}
+```
+
 # Support
 To support the project, you can send donations to following addresses:
 
