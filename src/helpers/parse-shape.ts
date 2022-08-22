@@ -53,16 +53,33 @@ const PARSED_TYPES = [
   zod.ZodObject,
 ] as const
 
+type Options<T extends zod.AnyZodObject>
+  = IModelFromZodOptions<T>
+  & {
+    /**
+   * Provides the decorator to decorate the dynamically generated class.
+   *
+   * @param {T} zodInput The zod input.
+   * @param {string} key The name of the currently processsed property.
+   * @return {ClassDecorator} The class decorator to decorate the class.
+   * @memberof IOptions
+   */
+    getDecorator?(zodInput: T, key: string): ClassDecorator
+  }
+
 /**
  * Parses a zod input object with given options.
  *
  * @export
  * @template T The type of the zod object.
  * @param {T} zodInput The zod object input.
- * @param {IModelFromZodOptions<T>} [options={}] The options for the parsing.
+ * @param {Options<T>} [options={}] The options for the parsing.
  * @return {ParsedField[]} An array of {@link ParsedField}.
  */
-export function parseShape<T extends zod.AnyZodObject>(zodInput: T, options: IModelFromZodOptions<T> = {}) {
+export function parseShape<T extends zod.AnyZodObject>(
+  zodInput: T,
+  options: Options<T> = {}
+) {
   const parsedShapes: ParsedField[] = []
 
   for (const _key in zodInput.shape) {
