@@ -1,9 +1,7 @@
 import { IModelFromZodOptions } from 'src/model-from-zod'
 import * as zod from 'zod'
 
-import { Float, Int } from '@nestjs/graphql'
-
-import { modelFromZod } from '../model-from-zod'
+import { modelFromZod, modelFromZodBase } from '../model-from-zod'
 import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
 
@@ -75,6 +73,18 @@ export interface ZodTypeInfo {
   isItemNullable?: boolean
 }
 
+type Options<T extends object> = IModelFromZodOptions<T> & {
+  /**
+   * Provides the decorator to decorate the dynamically generated class.
+   *
+   * @param {T} zodInput The zod input.
+   * @param {string} key The name of the currently processsed property.
+   * @return {ClassDecorator} The class decorator to decorate the class.
+   * @memberof IOptions
+   */
+  getDecorator?(zodInput: T, key: string): ClassDecorator
+}
+
 /**
  * Converts a given `zod` object input for a key, into {@link ZodTypeInfo}.
  *
@@ -84,10 +94,15 @@ export interface ZodTypeInfo {
  * that is being converted.
  * 
  * @param {zod.ZodTypeAny} prop The `zod` object property.
- * @param {IModelFromZodOptions<T>} options The options for conversion.
+ * @param {Options<T>} options The options for conversion.
  * @return {ZodTypeInfo} The {@link ZodTypeInfo} of the property.
  */
-export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod.ZodTypeAny, options: IModelFromZodOptions<T>): ZodTypeInfo {
+export function zodToTypeInfo<T extends zod.AnyZodObject>(
+  key: string,
+  prop: zod.ZodTypeAny,
+  options: Options<T>
+): ZodTypeInfo {
+
   if (isZodInstance(zod.ZodArray, prop)) {
     const data = zodToTypeInfo(key, prop.element, options)
 
@@ -124,7 +139,9 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
   }
   else if (isZodInstance(zod.ZodNumber, prop)) {
     return {
-      type: prop.isInt ? Int : Float,
+      // FIXME: There is a known bug in NestJS that does not support `Int` and
+      // `Float` separately therefore we will just be passing `Number` here.
+      type: Number,
       isOptional: prop.isOptional(),
       isNullable: prop.isNullable(),
     }
@@ -158,7 +175,17 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
       isAbstract: isNullable,
     }
 
-    const model = modelFromZod(prop as any, nestedOptions)
+    let model: any
+    if (typeof options.getDecorator === 'function') {
+      model = modelFromZodBase(
+        prop as any,
+        nestedOptions,
+        options.getDecorator(prop as T, nestedOptions.name)
+      )
+    }
+    else {
+      model = modelFromZod(prop as any, nestedOptions)
+    }
 
     return {
       type: model,
@@ -174,6 +201,9 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(key: string, prop: zod
       isOptional: prop.isOptional(),
       isEnum: true,
     }
+  }
+  else if (isZodInstance(zod.ZodDefault, prop)) {
+    return zodToTypeInfo(key, prop._def.innerType, options)
   }
   else {
     throw new Error(`Unsupported type info of Key("${key}")`)
