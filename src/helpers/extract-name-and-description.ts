@@ -2,6 +2,7 @@ import * as zod from 'zod'
 
 import { IModelFromZodOptions } from '../model-from-zod'
 import { getAndIncreaseRegisterCount } from './constants'
+import { getDescription } from './get-description'
 
 /**
  * Extracts the name and description from a zod object input.
@@ -15,16 +16,17 @@ import { getAndIncreaseRegisterCount } from './constants'
  */
 export function extractNameAndDescription<T extends zod.AnyZodObject>(zodInput: T, options: IModelFromZodOptions<T>) {
   let { name } = options
-  let { description } = zodInput
+  let description = getDescription(zodInput)
 
   if (!name) {
     if (description) {
+
       const match = description.match(/(\w+):\s*?(.*)+/)
       if (match) {
         const [ _full, className, actualDescription ] = match
 
         name = className
-        description = actualDescription
+        description = actualDescription.trim()
 
         return { name, description }
       }

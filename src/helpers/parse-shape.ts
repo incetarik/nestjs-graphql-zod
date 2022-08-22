@@ -6,6 +6,7 @@ import { IModelFromZodOptions } from '../model-from-zod'
 import { buildEnumType } from './build-enum-type'
 import { createZodPropertyDescriptor } from './create-zod-property-descriptor'
 import { generateDefaults } from './generate-defaults'
+import { getDescription } from './get-description'
 import { isZodInstance } from './is-zod-instance'
 import { zodToTypeInfo } from './zod-to-type-info'
 
@@ -119,7 +120,7 @@ export function parseShape<T extends zod.AnyZodObject>(zodInput: T, options: IMo
         name: key,
         nullable,
         defaultValue,
-        description: prop.description,
+        description: getDescription(prop),
       })
     })
   }
