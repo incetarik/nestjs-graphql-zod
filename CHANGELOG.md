@@ -3,7 +3,7 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
-## [0.1.6] - 2022-08-23
+## [1.0.0] - 2022-08-23
 ### Added
 - New decorators for `InputType` with `zod` validations:
   - `InputZodType`: Takes a `zod` validation object and can be used in place of
@@ -45,7 +45,7 @@ The initial version of the package.
 
 [Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/v1.0.0...HEAD
 
-[0.1.6]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.5...0.1.6
+[1.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.5...1.0.0
 [0.1.5]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.3...0.1.5
 [0.1.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.1...0.1.2
