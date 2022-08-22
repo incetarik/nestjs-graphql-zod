@@ -51,6 +51,7 @@ const PARSED_TYPES = [
   zod.ZodEnum,
   zod.ZodOptional,
   zod.ZodObject,
+  zod.ZodDefault,
 ] as const
 
 type Options<T extends zod.AnyZodObject>
@@ -114,7 +115,7 @@ export function parseShape<T extends zod.AnyZodObject>(
 
     const { type: fieldType } = elementType
 
-    let defaultValue = generateDefaults(prop)
+    let defaultValue = elementType.isType ? undefined : generateDefaults(prop)
     let nullable: boolean | NullableList = isNullable || isOptional
 
     if (isOfArray) {
