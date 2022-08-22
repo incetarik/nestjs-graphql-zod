@@ -104,6 +104,20 @@ export interface IModelFromZodOptionsWithMapper<T extends object, PM extends Map
   readonly propertyMap?: Readonly<PM>
 }
 
+type Options<T extends object, PM extends Mapper<T> = Mapper<T>>
+  = IModelFromZodOptionsWithMapper<T, PM>
+  & {
+    /**
+     * Provides the decorator to decorate the dynamically generated class.
+     *
+     * @param {T} zodInput The zod input.
+     * @param {string} key The name of the currently processsed property.
+     * @return {ClassDecorator} The class decorator to decorate the class.
+     * @memberof IOptions
+     */
+    getDecorator?(zodInput: T, key: string): ClassDecorator
+  }
+
 type ToType<T extends object, O>
   = O extends IModelFromZodOptionsWithMapper<any, infer PMI>
   ? { new(): MapKeys<T, PMI> }
@@ -122,24 +136,28 @@ let _generatedClasses: WeakMap<zod.AnyZodObject, Type> | undefined
  * @return {Type} A class that represents the `zod` object and also
  * compatible with `GraphQL`.
  */
-export function modelFromZod<
+export function modelFromZodBase<
   T extends zod.AnyZodObject,
-  O extends IModelFromZodOptionsWithMapper<zod.infer<T>>
->(zodInput: T, options: O = {} as O): ToType<zod.infer<T>, O> {
+  O extends Options<T>
+>(
+  zodInput: T,
+  options: O = {} as O,
+  decorator: ClassDecorator
+): ToType<T, O> {
 
-  const previousRecord = (_generatedClasses ??= new WeakMap<zod.AnyZodObject, Type>()).get(zodInput)
-  if (previousRecord) return previousRecord as ToType<zod.infer<T>, O>
+  const previousRecord
+    = (_generatedClasses ??= new WeakMap<zod.AnyZodObject, Type>())
+      .get(zodInput)
+
+  if (previousRecord) return previousRecord as ToType<T, O>
 
   const { name, description } = extractNameAndDescription(zodInput, options)
   let { keepZodObject = false, propertyMap } = options
 
-  @ObjectType(name, {
-    description,
-    isAbstract: zodInput.isNullable() || zodInput.isOptional(),
-    ...options
-  })
   class DynamicZodModel {}
   const prototype = DynamicZodModel.prototype
+
+  decorator(DynamicZodModel)
 
   if (keepZodObject) {
     Object.defineProperty(prototype, ZodObjectKey, {
@@ -153,6 +171,7 @@ export function modelFromZod<
     ...options,
     name,
     description,
+    getDecorator: options.getDecorator ?? (() => decorator)
   })
 
   for (const { descriptor, key, decorateFieldProperty } of parsed) {
@@ -164,4 +183,30 @@ export function modelFromZod<
 
   _generatedClasses.set(zodInput, DynamicZodModel)
   return DynamicZodModel as ToType<T, O>
+}
+
+/**
+ * Creates a dynamic class which will be compatible with GraphQL, from a
+ * `zod` model.
+ *
+ * @export
+ * @template T The type of the zod input.
+ * @param {T} zodInput The zod object input.
+ * @param {IModelFromZodOptions<T>} [options={}] The options for model creation.
+ * @return {Type} A class that represents the `zod` object and also
+ * compatible with `GraphQL`.
+ */
+export function modelFromZod<
+  T extends zod.AnyZodObject,
+  O extends IModelFromZodOptionsWithMapper<T>
+>(zodInput: T, options: O = {} as O): ToType<T, O> {
+  const { name, description } = extractNameAndDescription(zodInput, options)
+
+  const decorator = ObjectType(name, {
+    description,
+    isAbstract: zodInput.isNullable() || zodInput.isOptional(),
+    ...options
+  })
+
+  return modelFromZodBase(zodInput, options, decorator)
 }
