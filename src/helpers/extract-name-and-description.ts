@@ -1,8 +1,8 @@
-import * as zod from 'zod'
-
-import { IModelFromZodOptions } from '../model-from-zod'
 import { getAndIncreaseRegisterCount } from './constants'
 import { getDescription } from './get-description'
+
+import type { AnyZodObject } from 'zod'
+import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**
  * Extracts the name and description from a zod object input.
@@ -14,7 +14,10 @@ import { getDescription } from './get-description'
  * @return {{ name: string, description: string }} An object containing
  * normalized name and description info. 
  */
-export function extractNameAndDescription<T extends zod.AnyZodObject>(zodInput: T, options: IModelFromZodOptions<T>) {
+export function extractNameAndDescription<T extends AnyZodObject>(
+  zodInput: T,
+  options: IModelFromZodOptions<T>
+) {
   let { name } = options
   let description = getDescription(zodInput)
 

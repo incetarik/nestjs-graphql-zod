@@ -1,14 +1,15 @@
-import { AnyZodObject } from 'zod'
-
-import { BaseTypeOptions } from '@nestjs/graphql'
-
 import { IModelFromZodOptionsWithMapper, modelFromZod } from '../model-from-zod'
 import { decorateWithZodInput } from './decorate-with-zod-input'
 import { makeDecoratorFromFactory } from './make-decorator-from-factory'
-import { DynamicZodModelClass, GraphQLMDF } from './types'
-import { WrapWithZodOptions } from './zod-options-wrapper.interface'
 
-type BaseOptions<T extends object> = WrapWithZodOptions<BaseTypeOptions, T>
+import type { AnyZodObject } from 'zod'
+import type { BaseTypeOptions } from '@nestjs/graphql'
+
+import type { DynamicZodModelClass, GraphQLMDF } from './types'
+import type { WrapWithZodOptions } from './zod-options-wrapper.interface'
+
+type BaseOptions<T extends AnyZodObject>
+  = WrapWithZodOptions<BaseTypeOptions, T>
 
 /**
  * Returns a method decorator that is built with `zod` validation object.

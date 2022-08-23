@@ -1,13 +1,14 @@
-import * as zod from 'zod'
+import { AnyZodObject, infer as Infer, ZodEnum } from 'zod'
 
 import { registerEnumType } from '@nestjs/graphql'
 
-import { IModelFromZodOptions } from '../model-from-zod'
 import { getRegisterCount } from './constants'
+import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
 import { withSuffix } from './with-suffix'
-import { ZodTypeInfo } from './zod-to-type-info'
-import { isZodInstance } from './is-zod-instance'
+
+import type { ZodTypeInfo } from './zod-to-type-info'
+import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**
  * Builds an enum type for GraphQL schema.
@@ -21,14 +22,14 @@ import { isZodInstance } from './is-zod-instance'
  * 
  * @return {object} The enum object.
  */
-export function buildEnumType<T extends zod.AnyZodObject>(
-  key: keyof zod.infer<T>,
+export function buildEnumType<T extends AnyZodObject>(
+  key: keyof Infer<T>,
   typeInfo: ZodTypeInfo,
-  options: IModelFromZodOptions<zod.infer<T>>
+  options: IModelFromZodOptions<T>
 ): object {
 
   const { type } = typeInfo
-  if (isZodInstance(zod.ZodEnum, type)) {
+  if (isZodInstance(ZodEnum, type)) {
     const { Enum } = type
 
     const incompatibleKey = getFirstIncompatibleEnumKey(Enum)

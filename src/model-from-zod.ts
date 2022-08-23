@@ -1,12 +1,14 @@
-import * as zod from 'zod'
+import { AnyZodObject, infer as Infer, ParseParams, ZodError } from 'zod'
 
-import { Type } from '@nestjs/common'
 import { ObjectType, ObjectTypeOptions } from '@nestjs/graphql'
 
 import { extractNameAndDescription, parseShape } from './helpers'
 import { ZodObjectKey } from './helpers/constants'
 
-export interface IModelFromZodOptions<T extends object> extends ObjectTypeOptions {
+import type { Type } from '@nestjs/common'
+
+export interface IModelFromZodOptions<T extends AnyZodObject>
+  extends ObjectTypeOptions {
   /**
    * The name of the model class in GraphQL schema.
    *
@@ -60,18 +62,18 @@ export interface IModelFromZodOptions<T extends object> extends ObjectTypeOption
    * @param {K} key The key that could not be parsed.
    * @param {T[ K ]} newValue The new value that is tried to be parsed.
    * @param {(T[ K ] | undefined)} oldValue The previous value of the property.
-   * @param {zod.ZodError<T[ K ]>} error The error thrown during parsing.
+   * @param {ZodError<T[ K ]>} error The error thrown during parsing.
    * @return {*}  {(T[ keyof T ] | void)} An alternative fallback value to
    * replace and dismiss the error, or nothing.
    * 
    * @memberof IModelFromZodOptions
    */
-  onParseError?<K extends keyof T>(
+  onParseError?<K extends keyof Infer<T>>(
     key: K,
-    newValue: T[ K ],
-    oldValue: T[ K ] | undefined,
-    error: zod.ZodError<T[ K ]>
-  ): T[ keyof T ] | void
+    newValue: Infer<T>[ K ],
+    oldValue: Infer<T>[ K ] | undefined,
+    error: ZodError<Infer<T>[ K ]>
+  ): Infer<T>[ keyof Infer<T> ] | void
 
   /**
    * A function that can be used for providing {@link zod.ParseParams} for
@@ -85,13 +87,17 @@ export interface IModelFromZodOptions<T extends object> extends ObjectTypeOption
    * 
    * @memberof IModelFromZodOptions
    */
-  onParsing?<K extends keyof T>(
+  onParsing?<K extends keyof Infer<T>>(
     key: K,
-    previousValue: T[ K ] | undefined
-  ): Partial<zod.ParseParams>
+    previousValue: Infer<T>[ K ] | undefined
+  ): Partial<ParseParams>
 }
 
-export interface IModelFromZodOptionsWithMapper<T extends object, PM extends Mapper<T> = Mapper<T>> extends IModelFromZodOptions<T> {
+export interface IModelFromZodOptionsWithMapper<
+  T extends AnyZodObject,
+  PM extends Mapper<T> = Mapper<T>
+  >
+  extends IModelFromZodOptions<T> {
   /**
    * A map that will be used for creating the properties on the generated
    * class.
@@ -104,7 +110,7 @@ export interface IModelFromZodOptionsWithMapper<T extends object, PM extends Map
   readonly propertyMap?: Readonly<PM>
 }
 
-type Options<T extends object, PM extends Mapper<T> = Mapper<T>>
+type Options<T extends AnyZodObject, PM extends Mapper<T> = Mapper<T>>
   = IModelFromZodOptionsWithMapper<T, PM>
   & {
     /**
@@ -123,7 +129,7 @@ type ToType<T extends object, O>
   ? { new(): MapKeys<T, PMI> }
   : never
 
-let _generatedClasses: WeakMap<zod.AnyZodObject, Type> | undefined
+let _generatedClasses: WeakMap<AnyZodObject, Type> | undefined
 
 /**
  * Creates a dynamic class which will be compatible with GraphQL, from a
@@ -137,7 +143,7 @@ let _generatedClasses: WeakMap<zod.AnyZodObject, Type> | undefined
  * compatible with `GraphQL`.
  */
 export function modelFromZodBase<
-  T extends zod.AnyZodObject,
+  T extends AnyZodObject,
   O extends Options<T>
 >(
   zodInput: T,
@@ -146,7 +152,7 @@ export function modelFromZodBase<
 ): ToType<T, O> {
 
   const previousRecord
-    = (_generatedClasses ??= new WeakMap<zod.AnyZodObject, Type>())
+    = (_generatedClasses ??= new WeakMap<AnyZodObject, Type>())
       .get(zodInput)
 
   if (previousRecord) return previousRecord as ToType<T, O>
@@ -175,7 +181,8 @@ export function modelFromZodBase<
   })
 
   for (const { descriptor, key, decorateFieldProperty } of parsed) {
-    const targetKey = propertyMap?.[ key as keyof T ] ?? key as keyof T
+    const targetKey
+      = propertyMap?.[ key as keyof Infer<T> ] ?? key as keyof Infer<T>
 
     Object.defineProperty(prototype, targetKey, descriptor)
     decorateFieldProperty(prototype, targetKey as string)
@@ -197,7 +204,7 @@ export function modelFromZodBase<
  * compatible with `GraphQL`.
  */
 export function modelFromZod<
-  T extends zod.AnyZodObject,
+  T extends AnyZodObject,
   O extends IModelFromZodOptionsWithMapper<T>
 >(zodInput: T, options: O = {} as O): ToType<T, O> {
   const { name, description } = extractNameAndDescription(zodInput, options)

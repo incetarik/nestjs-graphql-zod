@@ -1,7 +1,12 @@
 declare type UnionToTuple<U> = UnionToTuple_<U> extends infer X ? Cast<X, List> : never
 
 declare type Mapper<X extends object>
-  = { [ K in keyof X ]?: readonly string | number | symbol }
+  = X extends { _output: infer O } ? (
+    O extends object
+    ? Mapper<O>
+    : { [ K in keyof X ]?: readonly string | number | symbol }
+  )
+  : { [ K in keyof X ]?: readonly string | number | symbol }
 
 declare type MapKeys<T extends object, Map extends { [ K in keyof T ]?: string | number | symbol }>
   = Omit<T, keyof Map> & MapKeyArray<T, Map, UnionToTuple<keyof Map>>

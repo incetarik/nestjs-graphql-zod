@@ -1,34 +1,74 @@
 # nestjs-graphql-zod
 
-A library providing dynamic `GraphQL` object classes from their `zod` validation
-objects.
+**Use `zod` validation objects in your GraphQL actions!**
 
-This library uses a `zod` object and creates `GraphQL` object/class types for
-given input and generates corresponding fields/properties automatically.
+This library provides utility functions and decorators similar to NestJS
+GraphQL decorators that lets you work with `zod` objects without the need of 
+writing GraphQL schema classes.
 
-You can also nest objects (use `zod.object(...)` for a property) as much as
-you want, and also use `zod.enum(...)` and you will also have the corresponding
-enums generated for your `GraphQL` schema.
+- Nested `zod.object(...)` calls are supported. These will lead to generate
+another GraphQL model for each definition.
 
-**This library will do the returned value validation.**
+- Descriptions are supported. Additionally, for `zod.object(...)` definitions,
+to provide a custom name (instead of the dynamically generated ones) the
+description should be in `{ClassName}:{Description}` format 
+(for example `UpdateModel: Contains properties that will be updated`). This
+will cause a model generation with given class name with given description.
 
-To create the corresponding `GraphQL` classes only, use `modelFromZod` function.
+- `zod.enum(...)` calls are supported. Enum models will be generated in GraphQL
+schema.
 
-NOTE: The names for generated `GraphQL` types are created automatically, to
-give them names, you can either use `name` property of the options, or simply
-follow the format `{ClassName}:{Description}` string to `.describe` your object.
-When you do this, the string will be read until `:` and the left hand side
-will be the class name which will be generated and the rest will be the
-description of the generated `GraphQL` type.
+## Decorators
+All the decorators are the same with underlying decorator with an exception that
+the first parameter is the `zod` object.
 
-## Setup Example
+The overloads of the underlying decorators are also reflected. Therefore it is
+possible to use an overload of the decorators provided by this library.
+
+### Method Decorators:
+- `@QueryWithZod`
+- `@MutationWithZod`
+- `@SubscriptionWithZod`
+
+These decorators will do **output validation**. 
+They take `zod` object and validate the output with given `zod` object.
+
+### Parameter/Class Decorators
+- `@ZodArgs`
+- `@InputTypeWithZod`
+
+These decorators will do **input validation**.
+They take `zod` object and validate the input with given `zod` object.
+
+## Utility Functions
+- `modelFromZodBase`: Takes a `zod` input, options and a
+decorator to decorate the dynamically built class with (such as `ObjectType`).
+
+- `modelFromZod`: Takes a `zod` input and options to build
+an `ObjectType` decorated class and return the class itself. The class will
+contain the properties from the given `zod` input.
+
+- `inputFromZod`: Takes a `zod` input and options to build
+an `InputType` decorated class and return the class itself. The class will
+contain the properties from the given `zod` input.
+
+- `getZodObject`: Takes an object and returns the source `zod` object that is
+used to build the class. For this function to return a defined value, the
+classes should be built with `keepZodObject` option property set to `true`.
+
+---
+
+## Setup
 - Add `nestjs-graphql-zod` to your dependencies in `package.json`.
 - Either use:
   - Classes which you can create with `modelFromZod`.
-  - Decorators for `GraphQL`, available decorators:
+  - Use decorators for `GraphQL` action methods:
     - `@MutationWithZod`
     - `@QueryWithZod`
     - `@SubscriptionWithZod`
+    
+    or decorators for parameters:
+    - `@ZodArgs`
 
     These are the same with their corresponding `GraphQL` method decorators.
     Yet, they work with `zod` objects.
@@ -43,7 +83,7 @@ const UserZod = zod.object({
   age: zod.number().int().gt(10).describe('The age of the user.'),
   fields: zod.string().optional().array().optional().describe('The fields of the user'),
   sortBy: zod.enum([ 'asc', 'desc' ]).describe('The sorting parameter of user.')
-})
+}).describe('ExampleUser: Represents an example user instance.')
 
 class UserResolver {
   @QueryWithZod(UserZod)
@@ -177,10 +217,10 @@ type ExampleUser_Settings_Profile {
 }
 ```
 
-### InputType Example
+### InputType/Args Example
 ```ts
 import * as zod from 'zod'
-import { InputZodType } from 'nestjs-graphql-zod'
+import { ZodArgs } from 'nestjs-graphql-zod'
 
 const RequestSchema = zod.object({
   username: zod.string().min(5).max(20).describe('The username of the request owner'),
@@ -197,12 +237,12 @@ const RequestSchema = zod.object({
 
 class ExampleResolver() {
   @Query(() => Boolean)
-  processRequest(@InputZodType(RequestSchema) input: InputZodType.Of<typeof RequestSchema>) {
+  processRequest(@ZodArgs(RequestSchema) input: ZodArgs.Of<typeof RequestSchema>) {
     // The input will contain all the properties validated according to the
     // schema defined above. If the validation was failed, the user will get
     // BadRequest error and this method will not be called.
 
-    // The @InputZodType(Schema) decorator is behaving like 
+    // The @ZodArgs(Schema) decorator is behaving like 
     // @Args() + @InputType() decorators.
     //
     // The @InputType() is applied to underlying class, the @Args() is applied

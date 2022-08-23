@@ -1,5 +1,4 @@
 import { plainToInstance } from 'class-transformer'
-import * as zod from 'zod'
 
 import { BadRequestException } from '@nestjs/common'
 import { Subscription, SubscriptionOptions as SO } from '@nestjs/graphql'
@@ -9,7 +8,9 @@ import {
   modelFromZod,
 } from '../../model-from-zod'
 
-export interface SubscriptionOptions<T extends object> extends SO {
+import type { AnyZodObject, ZodError } from 'zod'
+
+export interface SubscriptionOptions<T extends AnyZodObject> extends SO {
   /**
    * Options for model creation from `zod`.
    *
@@ -30,7 +31,9 @@ export interface SubscriptionOptions<T extends object> extends SO {
  * @param {T} input The zod input object.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(
+  input: T
+): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
@@ -44,7 +47,10 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T): Metho
  * @param {string} name The name of the method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: string): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(
+  input: T,
+  name: string
+): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
@@ -60,7 +66,10 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: 
  * 
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, options: SubscriptionOptions<T>): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(
+  input: T,
+  options: SubscriptionOptions<T>
+): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
@@ -77,8 +86,17 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, option
  * 
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, name: string, options: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>): MethodDecorator
-export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | SubscriptionOptions<T>, pickedOptions?: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>) {
+export function SubscriptionWithZod<T extends AnyZodObject>(
+  input: T,
+  name: string,
+  options: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>
+): MethodDecorator
+
+export function SubscriptionWithZod<T extends AnyZodObject>(
+  input: T,
+  nameOrOptions?: string | SubscriptionOptions<T>,
+  pickedOptions?: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>
+) {
   let zodOptions: IModelFromZodOptionsWithMapper<T> | undefined
 
   if (typeof nameOrOptions === 'object') {
@@ -90,7 +108,11 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOr
 
   const model = modelFromZod(input, zodOptions)
 
-  return function _SubscriptionWithZod(target: any, methodName: string, descriptor: PropertyDescriptor) {
+  return function _SubscriptionWithZod(
+    target: any,
+    methodName: string,
+    descriptor: PropertyDescriptor
+  ) {
     let newDescriptor = descriptor || {}
 
     const originalFunction = descriptor?.value ?? target[ methodName ]
@@ -101,7 +123,7 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOr
         return result
           .then(output => input.parseAsync(output))
           .then((output) => plainToInstance(model, output))
-          .catch((error: zod.ZodError) => {
+          .catch((error: ZodError) => {
             const messages = error.issues.reduce((prev, curr) => {
               prev[ curr.path.join('.') ] = curr.message
               return prev
@@ -130,20 +152,24 @@ export function SubscriptionWithZod<T extends zod.AnyZodObject>(input: T, nameOr
       Object.defineProperty(target, methodName, newDescriptor)
     }
 
+    let decorate: MethodDecorator
+
     if (typeof nameOrOptions === 'string') {
       if (typeof pickedOptions === 'object') {
-        Subscription(nameOrOptions, pickedOptions)(target, methodName, descriptor)
+        decorate = Subscription(nameOrOptions, pickedOptions)
       }
       else {
-        Subscription(nameOrOptions)(target, methodName, descriptor)
+        decorate = Subscription(nameOrOptions)
       }
     }
     else if (typeof nameOrOptions === 'object') {
       const { zod, ...rest } = nameOrOptions
-      Subscription(() => model, rest)(target, methodName, descriptor)
+      decorate = Subscription(() => model, rest)
     }
     else {
-      Subscription(() => model)(target, methodName, descriptor)
+      decorate = Subscription(() => model)
     }
+
+    decorate(target, methodName, descriptor)
   }
 }

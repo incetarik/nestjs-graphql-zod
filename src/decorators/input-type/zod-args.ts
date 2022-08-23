@@ -1,11 +1,11 @@
-import { AnyZodObject, infer as Infer } from 'zod'
-
 import { PipeTransform, Type } from '@nestjs/common'
 import { Args, ArgsOptions } from '@nestjs/graphql'
 
 import { extractNameAndDescription } from '../../helpers'
 import { ZodValidatorPipe } from '../../helpers/zod-validator.pipe'
-import { InputTypeFromZod } from './input-type-from-zod'
+import { inputFromZod } from './input-from-zod'
+
+import type { AnyZodObject, infer as Infer } from 'zod'
 
 type PT<F = any, T = any> = PipeTransform<F, T> | Type<PipeTransform<F, T>>
 
@@ -26,7 +26,7 @@ type PT<F = any, T = any> = PipeTransform<F, T> | Type<PipeTransform<F, T>>
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function InputZodType<T extends AnyZodObject>(
+export function ZodArgs<T extends AnyZodObject>(
   input: T,
   property: string,
   options: ArgsOptions,
@@ -47,7 +47,7 @@ export function InputZodType<T extends AnyZodObject>(
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function InputZodType<T extends AnyZodObject>(
+export function ZodArgs<T extends AnyZodObject>(
   input: T,
   options: ArgsOptions,
   ...pipes: PT[]
@@ -69,7 +69,7 @@ export function InputZodType<T extends AnyZodObject>(
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function InputZodType<T extends AnyZodObject>(
+export function ZodArgs<T extends AnyZodObject>(
   input: T,
   property: string,
   ...pipes: PT[]
@@ -88,12 +88,12 @@ export function InputZodType<T extends AnyZodObject>(
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function InputZodType<T extends AnyZodObject>(
+export function ZodArgs<T extends AnyZodObject>(
   input: T,
   ...pipes: PT[]
 ): ParameterDecorator
 
-export function InputZodType<T extends AnyZodObject>(
+export function ZodArgs<T extends AnyZodObject>(
   input: T,
   propertyOrOptions?: string | ArgsOptions | PT,
   optionsOrPipe?: ArgsOptions | PT,
@@ -133,7 +133,7 @@ export function InputZodType<T extends AnyZodObject>(
 
   // Operation
   const { name, description } = extractNameAndDescription(input, {})
-  const RegisteredType = InputTypeFromZod(input, { name, description })
+  const RegisteredType = inputFromZod(input, { name, description })
 
   pipes.unshift(new ZodValidatorPipe(input, RegisteredType))
 
@@ -160,7 +160,7 @@ export function InputZodType<T extends AnyZodObject>(
   return args
 }
 
-export module InputZodType {
+export module ZodArgs {
   /**
    * A type for inferring the type of a given `zod` validation object.
    */

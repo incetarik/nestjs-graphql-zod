@@ -1,4 +1,10 @@
-import * as zod from 'zod'
+import {
+  AnyZodObject,
+  ZodArray,
+  ZodDefault,
+  ZodNullable,
+  ZodOptional,
+} from 'zod'
 
 import { isZodInstance } from './is-zod-instance'
 
@@ -9,12 +15,14 @@ import { isZodInstance } from './is-zod-instance'
  * @param {T} [input] The zod object input.
  * @return {(string | undefined)} The description of the input or `undefined.`
  */
-export function getDescription<T extends zod.AnyZodObject>(input?: T): string | undefined {
+export function getDescription<T extends AnyZodObject>(
+  input?: T
+): string | undefined {
   if (!input) return
 
   if (input.description) return input.description
 
-  if (isZodInstance(zod.ZodDefault, input)) {
+  if (isZodInstance(ZodDefault, input)) {
     let innerType = input._def[ 'innerType' ] as T
     if (typeof innerType === 'object') {
       return getDescription(innerType)
@@ -22,15 +30,15 @@ export function getDescription<T extends zod.AnyZodObject>(input?: T): string | 
     return
   }
 
-  if (isZodInstance(zod.ZodArray, input)) {
+  if (isZodInstance(ZodArray, input)) {
     return getDescription(input.element as T)
   }
 
-  if (isZodInstance(zod.ZodNullable, input)) {
+  if (isZodInstance(ZodNullable, input)) {
     return getDescription(input.unwrap() as T)
   }
 
-  if (isZodInstance(zod.ZodOptional, input)) {
+  if (isZodInstance(ZodOptional, input)) {
     return getDescription(input.unwrap() as T)
   }
 }

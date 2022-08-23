@@ -1,7 +1,10 @@
-import { IModelFromZodOptions } from 'src/model-from-zod'
 import * as zod from 'zod'
 
-import { modelFromZod, modelFromZodBase } from '../model-from-zod'
+import {
+  IModelFromZodOptions,
+  modelFromZod,
+  modelFromZodBase,
+} from '../model-from-zod'
 import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
 
@@ -73,7 +76,7 @@ export interface ZodTypeInfo {
   isItemNullable?: boolean
 }
 
-type Options<T extends object> = IModelFromZodOptions<T> & {
+type Options<T extends zod.AnyZodObject> = IModelFromZodOptions<T> & {
   /**
    * Provides the decorator to decorate the dynamically generated class.
    *
@@ -204,6 +207,9 @@ export function zodToTypeInfo<T extends zod.AnyZodObject>(
   }
   else if (isZodInstance(zod.ZodDefault, prop)) {
     return zodToTypeInfo(key, prop._def.innerType, options)
+  }
+  else if (isZodInstance(zod.ZodTransformer, prop)) {
+    return zodToTypeInfo(key, prop.innerType(), options)
   }
   else {
     throw new Error(`Unsupported type info of Key("${key}")`)

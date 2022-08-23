@@ -1,4 +1,5 @@
 import type { InputTypeOptions } from '@nestjs/graphql'
+import type { AnyZodObject } from 'zod'
 
 import type { WrapWithZodOptions } from '../zod-options-wrapper.interface'
 
@@ -10,7 +11,7 @@ import type { WrapWithZodOptions } from '../zod-options-wrapper.interface'
  * @extends {WrapWithZodOptions<InputTypeOptions, T>}
  * @template T The type of the validation object.
  */
-export interface Options<T extends object>
+export interface Options<T extends AnyZodObject>
   extends WrapWithZodOptions<InputTypeOptions, T> {
   /**
    * The name of the {@link InputType}.

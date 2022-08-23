@@ -2,13 +2,14 @@ import * as zod from 'zod'
 
 import { Field, NullableList } from '@nestjs/graphql'
 
-import { IModelFromZodOptions } from '../model-from-zod'
 import { buildEnumType } from './build-enum-type'
 import { createZodPropertyDescriptor } from './create-zod-property-descriptor'
 import { generateDefaults } from './generate-defaults'
 import { getDescription } from './get-description'
 import { isZodInstance } from './is-zod-instance'
 import { zodToTypeInfo } from './zod-to-type-info'
+
+import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**
  * An interface describing a parsed field.
@@ -52,6 +53,7 @@ const PARSED_TYPES = [
   zod.ZodOptional,
   zod.ZodObject,
   zod.ZodDefault,
+  zod.ZodTransformer,
 ] as const
 
 type Options<T extends zod.AnyZodObject>

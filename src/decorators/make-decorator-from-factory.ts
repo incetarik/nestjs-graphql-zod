@@ -1,15 +1,12 @@
-
-
-import { AnyZodObject } from 'zod'
-
-import {
+import type { AnyZodObject } from 'zod'
+import type {
   DynamicZodModelClass,
   GraphQLCDF,
   GraphQLMDF,
   NameInputMethodDecoratorFactory,
   TypeOptionInputMethodDecoratorFactory,
 } from './types'
-import {
+import type {
   SupportedOptionTypes,
   WrapWithZodOptions,
 } from './zod-options-wrapper.interface'

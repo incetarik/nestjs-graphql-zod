@@ -13,6 +13,8 @@ import { ZodObjectKey } from './constants'
  * 
  * @return {*} The source zod object.
  */
-export function getZodObject<T extends Record<string | number | symbol, any>>(input: T) {
+export function getZodObject<T extends Record<string | number | symbol, any>>(
+  input: T
+) {
   return input[ ZodObjectKey ]
 }

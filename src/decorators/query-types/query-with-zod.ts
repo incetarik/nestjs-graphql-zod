@@ -1,11 +1,11 @@
-import * as zod from 'zod'
-
 import { Query, QueryOptions as QO } from '@nestjs/graphql'
 
-import { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
 import { MethodWithZod } from '../common'
 
-export interface QueryOptions<T extends object> extends QO {
+import type { AnyZodObject } from 'zod'
+import type { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
+
+export interface QueryOptions<T extends AnyZodObject> extends QO {
   /**
    * Options for model creation from `zod`.
    *
@@ -26,7 +26,7 @@ export interface QueryOptions<T extends object> extends QO {
  * @param {T} input The zod input object.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function QueryWithZod<T extends zod.AnyZodObject>(input: T): MethodDecorator
+export function QueryWithZod<T extends AnyZodObject>(input: T): MethodDecorator
 
 /**
  * Query handler (method) Decorator.
@@ -40,7 +40,10 @@ export function QueryWithZod<T extends zod.AnyZodObject>(input: T): MethodDecora
  * @param {string} name The name of the method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function QueryWithZod<T extends zod.AnyZodObject>(input: T, name: string): MethodDecorator
+export function QueryWithZod<T extends AnyZodObject>(
+  input: T,
+  name: string
+): MethodDecorator
 
 /**
  * Query handler (method) Decorator.
@@ -54,7 +57,14 @@ export function QueryWithZod<T extends zod.AnyZodObject>(input: T, name: string)
  * @param {QueryOptions<T>} options The options for query.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function QueryWithZod<T extends zod.AnyZodObject>(input: T, options: QueryOptions<T>): MethodDecorator
-export function QueryWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | QueryOptions<T>) {
+export function QueryWithZod<T extends AnyZodObject>(
+  input: T,
+  options: QueryOptions<T>
+): MethodDecorator
+
+export function QueryWithZod<T extends AnyZodObject>(
+  input: T,
+  nameOrOptions?: string | QueryOptions<T>
+) {
   return MethodWithZod(input, nameOrOptions, Query)
 }

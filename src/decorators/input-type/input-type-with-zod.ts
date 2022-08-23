@@ -1,11 +1,10 @@
-import { AnyZodObject } from 'zod'
-
-import { InputTypeOptions } from '@nestjs/graphql'
-
 import { extractNameAndDescription, parseShape } from '../../helpers'
 import { ZodObjectKey } from '../../helpers/constants'
 import { getInputTypeDecorator } from './get-input-type-decorator'
-import { Options } from './options.inteface'
+
+import type { AnyZodObject, infer as Infer } from 'zod'
+import type { InputTypeOptions } from '@nestjs/graphql'
+import type { Options } from './options.inteface'
 
 /**
  * Decorator that marks a class as a GraphQL input type.
@@ -60,6 +59,8 @@ export function InputTypeWithZod<T extends AnyZodObject>(
   nameOrOptions?: string | Options<T>,
   options?: Options<T>
 ): ClassDecorator {
+  type InnerType = Infer<T>
+
   if (typeof nameOrOptions === 'object') {
     options = nameOrOptions
     nameOrOptions = undefined
@@ -107,7 +108,8 @@ export function InputTypeWithZod<T extends AnyZodObject>(
     })
 
     for (const { descriptor, key, decorateFieldProperty } of parsed) {
-      const targetKey = propertyMap?.[ key as keyof T ] ?? key as keyof T
+      type K = keyof InnerType
+      const targetKey = propertyMap?.[ key as K ] ?? key as K
 
       Object.defineProperty(prototype, targetKey, descriptor)
       decorateFieldProperty(prototype, targetKey as string)

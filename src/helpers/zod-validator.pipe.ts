@@ -30,14 +30,33 @@ export class ZodValidatorPipe<T extends AnyZodObject> implements PipeTransform {
       const error = error_ as ZodError
 
       const message = error.issues.map(issue => {
-        const property = String(issue.path[ issue.path.length - 1 ])
+        const property = issue.path[ 0 ]
+
+        const targetValue = issue.path.reduce((prev, curr) => {
+          if (!prev) return
+          if (typeof prev !== 'object') return
+          return prev[ curr ]
+        }, value)
+
+        let children: ValidationError[] | undefined
+        if (issue.path.length > 1) {
+          children = [ { property: String(issue.path[ 1 ]) } ]
+
+          let curr = children[ 0 ]
+          for (let i = 2, limit = issue.path.length; i < limit; ++i) {
+            curr.children = [ curr = { property: String(issue.path[ i ]) } ]
+          }
+
+          curr.value = targetValue
+          curr.constraints = {
+            [ issue.code ]: issue.message
+          }
+        }
+
         return {
           property,
-          value: issue.path.reduce((prev, curr) => {
-            if (!prev) return
-            if (typeof prev !== 'object') return
-            return prev[ curr ]
-          }, value),
+          children,
+          value: targetValue,
           constraints: {
             [ issue.code ]: issue.message
           },

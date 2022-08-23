@@ -1,11 +1,11 @@
-import * as zod from 'zod'
-
 import { Mutation, MutationOptions as MO } from '@nestjs/graphql'
 
-import { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
 import { MethodWithZod } from '../common'
 
-export interface MutationOptions<T extends object> extends MO {
+import type { AnyZodObject } from 'zod'
+import type { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
+
+export interface MutationOptions<T extends AnyZodObject> extends MO {
   /**
    * Options for model creation from `zod`.
    *
@@ -26,7 +26,9 @@ export interface MutationOptions<T extends object> extends MO {
  * @param {T} input The zod input object.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T): MethodDecorator
+export function MutationWithZod<T extends AnyZodObject>(
+  input: T
+): MethodDecorator
 
 /**
  * Mutation handler (method) Decorator.
@@ -40,7 +42,10 @@ export function MutationWithZod<T extends zod.AnyZodObject>(input: T): MethodDec
  * @param {string} name The name of the method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T, name: string): MethodDecorator
+export function MutationWithZod<T extends AnyZodObject>(
+  input: T,
+  name: string
+): MethodDecorator
 
 /**
  * Mutation handler (method) Decorator.
@@ -54,7 +59,14 @@ export function MutationWithZod<T extends zod.AnyZodObject>(input: T, name: stri
  * @param {MutationOptions<T>} options The options for query method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T, options: MutationOptions<T>): MethodDecorator
-export function MutationWithZod<T extends zod.AnyZodObject>(input: T, nameOrOptions?: string | MutationOptions<T>) {
+export function MutationWithZod<T extends AnyZodObject>(
+  input: T,
+  options: MutationOptions<T>
+): MethodDecorator
+
+export function MutationWithZod<T extends AnyZodObject>(
+  input: T,
+  nameOrOptions?: string | MutationOptions<T>
+) {
   return MethodWithZod(input, nameOrOptions, Mutation)
 }

@@ -1,7 +1,14 @@
-import { IModelFromZodOptions } from 'src/model-from-zod'
-import * as zod from 'zod'
+import {
+  AnyZodObject,
+  infer as Infer,
+  ParseParams,
+  ZodDefault,
+  ZodTypeAny,
+} from 'zod'
 
 import { isZodInstance } from './is-zod-instance'
+
+import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**
  * Creates a property descriptor that provides `get` and `set` functions
@@ -14,10 +21,14 @@ import { isZodInstance } from './is-zod-instance'
  * @param {IModelFromZodOptions<T>} opts The options.
  * @return {PropertyDescriptor} A {@link PropertyDescriptor}.
  */
-export function createZodPropertyDescriptor<T extends object>(key: keyof T, input: zod.ZodTypeAny, opts: IModelFromZodOptions<T>): PropertyDescriptor {
+export function createZodPropertyDescriptor<T extends AnyZodObject>(
+  key: keyof Infer<T>,
+  input: ZodTypeAny,
+  opts: IModelFromZodOptions<T>
+): PropertyDescriptor {
   let localVariable: any
 
-  if (isZodInstance(zod.ZodDefault, input)) {
+  if (isZodInstance(ZodDefault, input)) {
     localVariable = input._def.defaultValue()
   }
 
@@ -29,7 +40,7 @@ export function createZodPropertyDescriptor<T extends object>(key: keyof T, inpu
     onParseError,
   } = opts
 
-  let keyProps: Partial<zod.ParseParams> | undefined
+  let keyProps: Partial<ParseParams> | undefined
   if (typeof onParsing === 'function') {
     keyProps = onParsing(key, localVariable)
   }
