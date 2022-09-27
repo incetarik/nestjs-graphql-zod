@@ -177,7 +177,7 @@ export function modelFromZodBase<
     ...options,
     name,
     description,
-    getDecorator: options.getDecorator ?? (() => decorator)
+    getDecorator: options.getDecorator
   })
 
   for (const { descriptor, key, decorateFieldProperty } of parsed) {
