@@ -3,6 +3,10 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [2.0.1] - 2022-09-27
+### Fixed
+- Nested classes were causing to register the top most class multiple times.
+
 ## [2.0.0] - 2022-08-23
 ### Added
 - `.transform` support. Now `zod` objects/properties may have `transform` calls.
@@ -50,6 +54,7 @@ The initial version of the package.
 
 [Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...HEAD
 
+[2.0.1]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/1.0.0...2.0.0
 [1.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.5...1.0.0
 [0.1.5]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.3...0.1.5
