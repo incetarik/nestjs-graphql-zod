@@ -36,7 +36,14 @@ export function decorateWithZodInput<
       return result
         .then(output => input.parseAsync(output))
         .then((output) => plainToInstance(model, output))
-        .catch((error: ZodError) => new BadRequestException(error.issues))
+        .catch((error: Error) => {
+          if (error instanceof ZodError) {
+            throw new BadRequestException(error.issues)
+          }
+          else {
+            throw error
+          }
+        })
     }
     else {
       const parseResult = input.safeParse(result)
@@ -44,7 +51,7 @@ export function decorateWithZodInput<
         return plainToInstance(model, parseResult.data)
       }
       else {
-        return new BadRequestException(parseResult.error.issues)
+        throw new BadRequestException(parseResult.error.issues)
       }
     }
   }
