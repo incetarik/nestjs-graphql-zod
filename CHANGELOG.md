@@ -3,6 +3,12 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [2.0.2] - 2022-09-28
+### Changed
+- The behavior of error handling has been changed. If an error is thrown from
+the method body, then the error will not be modified. If a zod validation
+error occurs, the zod error will always be placed in a `BadRequestException`.
+
 ## [2.0.1] - 2022-09-27
 ### Fixed
 - Nested classes were causing to register the top most class multiple times.
@@ -54,6 +60,7 @@ The initial version of the package.
 
 [Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...HEAD
 
+[2.0.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/1.0.0...2.0.0
 [1.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/0.1.5...1.0.0
