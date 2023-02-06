@@ -19,7 +19,7 @@ import type { IModelFromZodOptions } from '../model-from-zod'
  * @param {ZodTypeInfo} typeInfo The parsed zod type info.
  * @param {IModelFromZodOptions<zod.infer<T>>} options The options for building
  * enum type.
- * 
+ *
  * @return {object} The enum object.
  */
 export function buildEnumType<T extends AnyZodObject>(
@@ -34,7 +34,7 @@ export function buildEnumType<T extends AnyZodObject>(
 
     const incompatibleKey = getFirstIncompatibleEnumKey(Enum)
     if (incompatibleKey) {
-      throw new Error(`The value of the Key("${incompatibleKey}") of ${options.name}.${key} Enum was not valid`)
+      throw new Error(`The value of the Key("${incompatibleKey}") of ${options.name}.${String(key)} Enum was not valid`)
     }
 
     const parentName = options.name
@@ -43,7 +43,7 @@ export function buildEnumType<T extends AnyZodObject>(
 
     registerEnumType(Enum, {
       name: toTitleCase(`${parentName}_${enumName}_${registerCount}`),
-      description: type.description ?? `Enum values for ${options.name}.${key}`,
+      description: type.description ?? `Enum values for ${options.name}.${String(key)}`,
     })
 
     return typeInfo.type = Enum
@@ -58,7 +58,7 @@ export function buildEnumType<T extends AnyZodObject>(
     return typeInfo.type = [ dynamicEnumClass ]
   }
   else {
-    throw new Error(`Unexpected enum type for Key("${key}")`)
+    throw new Error(`Unexpected enum type for Key("${String(key)}")`)
   }
 }
 
