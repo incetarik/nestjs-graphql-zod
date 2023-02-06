@@ -3,6 +3,12 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [2.0.3] - 2023-02-07
+### Changed
+- Provides safe naming mechanism. Now using same name for different or same
+schemes will not cause error.
+- Now returns the same dynamic class for same zod scheme input for `@ZodArgs()`.
+
 ## [2.0.2] - 2022-09-28
 ### Changed
 - The behavior of error handling has been changed. If an error is thrown from
@@ -58,8 +64,9 @@ Type checking strategy is now changed to constructor name comparison.
 ### Added
 The initial version of the package.
 
-[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...HEAD
 
+[2.0.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/1.0.0...2.0.0
