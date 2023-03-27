@@ -1,14 +1,14 @@
+import { InputType, InputTypeOptions } from '@nestjs/graphql'
+
 import { extractNameAndDescription, parseShape } from '../../helpers'
 import { ZodObjectKey } from '../../helpers/constants'
-import { getInputTypeDecorator } from './get-input-type-decorator'
 
-import type { AnyZodObject, infer as Infer } from 'zod'
-import type { InputTypeOptions } from '@nestjs/graphql'
+import type { AnyZodObject } from 'zod'
 import type { Options } from './options.inteface'
 
 /**
  * Decorator that marks a class as a GraphQL input type.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -16,13 +16,11 @@ import type { Options } from './options.inteface'
  * @param {T} input The zod input object.
  * @return {ClassDecorator} A {@link ClassDecorator}.
  */
-export function InputTypeWithZod<T extends AnyZodObject>(
-  input: T
-): ClassDecorator
+export function InputTypeWithZod<T extends AnyZodObject>(input: T): ClassDecorator
 
 /**
  * Decorator that marks a class as a GraphQL input type.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -31,14 +29,11 @@ export function InputTypeWithZod<T extends AnyZodObject>(
  * @param {Options<T>} options The options for the decorator.
  * @return {ClassDecorator} A {@link ClassDecorator}.
  */
-export function InputTypeWithZod<T extends AnyZodObject>(
-  input: T,
-  options: Options<T>
-): ClassDecorator
+export function InputTypeWithZod<T extends AnyZodObject>(input: T, options: Options<T>): ClassDecorator
 
 /**
  * Decorator that marks a class as a GraphQL input type.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -48,11 +43,7 @@ export function InputTypeWithZod<T extends AnyZodObject>(
  * @param {Options<T>} [options] The options for the decorator.
  * @return {ClassDecorator} A {@link ClassDecorator}.
  */
-export function InputTypeWithZod<T extends AnyZodObject>(
-  input: T,
-  name: string,
-  options?: Options<T>
-): ClassDecorator
+export function InputTypeWithZod<T extends AnyZodObject>(input: T, name: string, options?: Options<T>): ClassDecorator
 
 export function InputTypeWithZod<T extends AnyZodObject>(
   input: T,
@@ -79,14 +70,14 @@ export function InputTypeWithZod<T extends AnyZodObject>(
     inputTypeOptions = rest
   }
 
-  const decorate = getInputTypeDecorator(name, inputTypeOptions)
+  const decorate = buildInputTypeDecorator(name, inputTypeOptions)
 
   return function ZodClassDecoratorBase(target: Function) {
     zodOptions ??= {}
 
     const { prototype } = target
     const { description, name = target.name } = extractNameAndDescription(input, zodOptions)
-    const { keepZodObject = false, propertyMap } = zodOptions
+    const { keepZodObject = false } = zodOptions
 
     const returnValue = decorate(target)
 
@@ -108,14 +99,34 @@ export function InputTypeWithZod<T extends AnyZodObject>(
     })
 
     for (const { descriptor, key, decorateFieldProperty } of parsed) {
-      type K = keyof InnerType
-      const targetKey = propertyMap?.[ key as K ] ?? key as K
-
-      Object.defineProperty(prototype, targetKey, descriptor)
-      decorateFieldProperty(prototype, targetKey as string)
+      Object.defineProperty(prototype, key as string, descriptor)
+      decorateFieldProperty(prototype, key as string)
     }
 
     return returnValue as void
   }
+}
+
+/**
+ * Builds an input type decorator for given name and options.
+ *
+ * @param {string} [name] The name of the property.
+ * @param {InputTypeOptions} [opts] The options for the decorator.
+ * @return {ClassDecorator} A decorator for the dynamic input type class.
+ */
+export function buildInputTypeDecorator(name?: string, opts?: InputTypeOptions): ClassDecorator {
+  if (typeof opts === 'object') {
+    if (typeof name === 'string') {
+      return InputType(name, opts)
+    }
+
+    return InputType(opts)
+  }
+
+  if (typeof name === 'string') {
+    return InputType(name)
+  }
+
+  return InputType()
 }
 

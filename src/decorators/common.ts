@@ -1,4 +1,4 @@
-import { IModelFromZodOptionsWithMapper, modelFromZod } from '../model-from-zod'
+import { IModelFromZodOptions, modelFromZod } from '../model-from-zod'
 import { decorateWithZodInput } from './decorate-with-zod-input'
 import { makeDecoratorFromFactory } from './make-decorator-from-factory'
 
@@ -19,13 +19,13 @@ type BaseOptions<T extends AnyZodObject>
  * @param {T} input The `zod` validation object.
  * @param {(string | BaseOptions<T> | undefined)} nameOrOptions The name or
  * the options.
- * 
+ *
  * @param {GraphQLMDF<BaseTypeOptions>} graphqlDecoratorFactory The actual
  * decorator factory function.
- * 
+ *
  * @param {DynamicZodModelClass<T>} model The dynamically built model class from
  * `zod` validation object.
- * 
+ *
  * @return {MethodDecorator} A method decorator.
  */
 export function MethodWithZodModel<T extends AnyZodObject>(
@@ -33,17 +33,16 @@ export function MethodWithZodModel<T extends AnyZodObject>(
   nameOrOptions: string | BaseOptions<T> | undefined,
   graphqlDecoratorFactory: GraphQLMDF<BaseTypeOptions>,
   model: DynamicZodModelClass<T>
-) {
+): MethodDecorator {
   return function _ModelWithZod(
-    target: Record<string, any>,
-    methodName: string,
+    target: Record<PropertyKey, any>,
+    methodName: string | symbol,
     descriptor: PropertyDescriptor
   ) {
     let newDescriptor = descriptor || {}
 
     const originalFunction = descriptor?.value ?? target[ methodName ]
-    const decoratedFunction
-      = decorateWithZodInput(originalFunction, input, model)
+    const decoratedFunction = decorateWithZodInput(originalFunction, input, model)
 
     newDescriptor.value = decoratedFunction
 
@@ -69,10 +68,10 @@ export function MethodWithZodModel<T extends AnyZodObject>(
  * @param {T} input The `zod` validation object.
  * @param {(string | BaseOptions<T> | undefined)} nameOrOptions The name or
  * the options.
- * 
+ *
  * @param {GraphQLMDF<BaseTypeOptions>} graphqlDecoratorFactory The actual
  * decorator factory function.
- * 
+ *
  * @return {MethodDecorator} A method decorator.
  */
 export function MethodWithZod<T extends AnyZodObject>(
@@ -80,7 +79,7 @@ export function MethodWithZod<T extends AnyZodObject>(
   nameOrOptions: string | BaseOptions<T> | undefined,
   graphqlDecoratorFactory: GraphQLMDF<BaseTypeOptions>
 ) {
-  let zodOptions: IModelFromZodOptionsWithMapper<T> | undefined
+  let zodOptions: IModelFromZodOptions<T> | undefined
 
   if (typeof nameOrOptions === 'object') {
     zodOptions = nameOrOptions.zod

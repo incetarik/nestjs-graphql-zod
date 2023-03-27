@@ -3,10 +3,7 @@ import { plainToInstance } from 'class-transformer'
 import { BadRequestException } from '@nestjs/common'
 import { Subscription, SubscriptionOptions as SO } from '@nestjs/graphql'
 
-import {
-  IModelFromZodOptionsWithMapper,
-  modelFromZod,
-} from '../../model-from-zod'
+import { IModelFromZodOptions, modelFromZod } from '../../model-from-zod'
 
 import type { AnyZodObject, ZodError } from 'zod'
 
@@ -14,16 +11,16 @@ export interface SubscriptionOptions<T extends AnyZodObject> extends SO {
   /**
    * Options for model creation from `zod`.
    *
-   * @type {IModelFromZodOptionsWithMapper<T>}
+   * @type {IModelFromZodOptions<T>}
    * @memberof QueryOptions
    */
-  zod?: IModelFromZodOptionsWithMapper<T>
+  zod?: IModelFromZodOptions<T>
 }
 
 /**
  * Subscription handler (method) Decorator.
  * Routes subscriptions to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -31,14 +28,12 @@ export interface SubscriptionOptions<T extends AnyZodObject> extends SO {
  * @param {T} input The zod input object.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends AnyZodObject>(
-  input: T
-): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(input: T): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
  * Routes subscriptions to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -47,43 +42,37 @@ export function SubscriptionWithZod<T extends AnyZodObject>(
  * @param {string} name The name of the method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends AnyZodObject>(
-  input: T,
-  name: string
-): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(input: T, name: string): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
  * Routes subscriptions to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
  * @template T The type of the zod object input.
  * @param {T} input The zod input object.
- * @param {SubscriptionOptions<zod.infer<T>>} options The options for 
+ * @param {SubscriptionOptions<zod.infer<T>>} options The options for
  * subscription method.
- * 
+ *
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function SubscriptionWithZod<T extends AnyZodObject>(
-  input: T,
-  options: SubscriptionOptions<T>
-): MethodDecorator
+export function SubscriptionWithZod<T extends AnyZodObject>(input: T, options: SubscriptionOptions<T>): MethodDecorator
 
 /**
  * Subscription handler (method) Decorator.
  * Routes subscriptions to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
  * @template T The type of the zod object input.
  * @param {T} input The zod input object.
  * @param {string} name The name of the method.
- * @param {SubscriptionOptions<zod.infer<T>>} options The options for 
+ * @param {SubscriptionOptions<zod.infer<T>>} options The options for
  * subscription method.
- * 
+ *
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
 export function SubscriptionWithZod<T extends AnyZodObject>(
@@ -97,7 +86,7 @@ export function SubscriptionWithZod<T extends AnyZodObject>(
   nameOrOptions?: string | SubscriptionOptions<T>,
   pickedOptions?: Pick<SubscriptionOptions<T>, 'filter' | 'resolve' | 'zod'>
 ) {
-  let zodOptions: IModelFromZodOptionsWithMapper<T> | undefined
+  let zodOptions: IModelFromZodOptions<T> | undefined
 
   if (typeof nameOrOptions === 'object') {
     zodOptions = nameOrOptions.zod
@@ -117,12 +106,12 @@ export function SubscriptionWithZod<T extends AnyZodObject>(
 
     const originalFunction = descriptor?.value ?? target[ methodName ]
 
-    newDescriptor.value = function _queryWithZod(...args: any[]) {
+    newDescriptor.value = function _subscriptionWithZod(...args: any[]) {
       const result = originalFunction.apply(this, args)
       if (result instanceof Promise) {
         return result
           .then(output => input.parseAsync(output))
-          .then((output) => plainToInstance(model, output))
+          .then(output => plainToInstance(model, output))
           .catch((error: ZodError) => {
             const messages = error.issues.reduce((prev, curr) => {
               prev[ curr.path.join('.') ] = curr.message

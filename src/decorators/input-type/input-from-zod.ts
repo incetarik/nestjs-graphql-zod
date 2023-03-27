@@ -7,7 +7,7 @@ import type { Options } from './options.inteface'
 
 /**
  * Returns a {@link InputTypeWithZod} decorated class from given `zod` input.
- * 
+ *
  * You can use this returned dynamic class to extend your classes.
  * @export
  * @template T The type of the `zod` object input.
@@ -15,13 +15,11 @@ import type { Options } from './options.inteface'
  * @return {Type<Infer<T>>} A class that contains the properties from given
  * `zod` input, decorated with {@link InputTypeWithZod}.
  */
-export function inputFromZod<T extends AnyZodObject>(
-  input: T
-): Type<Infer<T>>
+export function inputFromZod<T extends AnyZodObject>(input: T): Type<Infer<T>>
 
 /**
  * Returns a {@link InputTypeWithZod} decorated class from given `zod` input.
- * 
+ *
  * You can use this returned dynamic class to extend your classes.
  * @export
  * @template T The type of the `zod` object input.
@@ -30,14 +28,11 @@ export function inputFromZod<T extends AnyZodObject>(
  * @return {Type<Infer<T>>} A class that contains the properties from given
  * `zod` input, decorated with {@link InputTypeWithZod}.
  */
-export function inputFromZod<T extends AnyZodObject>(
-  input: T,
-  options: Options<T>
-): Type<Infer<T>>
+export function inputFromZod<T extends AnyZodObject>(input: T, options: Options<T>): Type<Infer<T>>
 
 /**
  * Returns a {@link InputTypeWithZod} decorated class from given `zod` input.
- * 
+ *
  * You can use this returned dynamic class to extend your classes.
  * @export
  * @template T The type of the `zod` object input.
@@ -47,11 +42,7 @@ export function inputFromZod<T extends AnyZodObject>(
  * @return {Type<Infer<T>>} A class that contains the properties from given
  * `zod` input, decorated with {@link InputTypeWithZod}.
  */
-export function inputFromZod<T extends AnyZodObject>(
-  input: T,
-  name: string,
-  options?: Options<T>
-): Type<Infer<T>>
+export function inputFromZod<T extends AnyZodObject>(input: T, name: string, options?: Options<T>): Type<Infer<T>>
 
 export function inputFromZod<T extends AnyZodObject>(
   input: T,

@@ -3,22 +3,22 @@ import { Mutation, MutationOptions as MO } from '@nestjs/graphql'
 import { MethodWithZod } from '../common'
 
 import type { AnyZodObject } from 'zod'
-import type { IModelFromZodOptionsWithMapper } from '../../model-from-zod'
+import type { IModelFromZodOptions } from '../../model-from-zod'
 
 export interface MutationOptions<T extends AnyZodObject> extends MO {
   /**
    * Options for model creation from `zod`.
    *
-   * @type {IModelFromZodOptionsWithMapper<T>}
+   * @type {IModelFromZodOptions<T>}
    * @memberof QueryOptions
    */
-  zod?: IModelFromZodOptionsWithMapper<T>
+  zod?: IModelFromZodOptions<T>
 }
 
 /**
  * Mutation handler (method) Decorator.
  * Routes specified mutation to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -26,14 +26,12 @@ export interface MutationOptions<T extends AnyZodObject> extends MO {
  * @param {T} input The zod input object.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends AnyZodObject>(
-  input: T
-): MethodDecorator
+export function MutationWithZod<T extends AnyZodObject>(input: T): MethodDecorator
 
 /**
  * Mutation handler (method) Decorator.
  * Routes specified mutation to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -42,15 +40,12 @@ export function MutationWithZod<T extends AnyZodObject>(
  * @param {string} name The name of the method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends AnyZodObject>(
-  input: T,
-  name: string
-): MethodDecorator
+export function MutationWithZod<T extends AnyZodObject>(input: T, name: string): MethodDecorator
 
 /**
  * Mutation handler (method) Decorator.
  * Routes specified mutation to this method.
- * 
+ *
  * Uses a `zod` object.
  *
  * @export
@@ -59,14 +54,8 @@ export function MutationWithZod<T extends AnyZodObject>(
  * @param {MutationOptions<T>} options The options for query method.
  * @return {MethodDecorator} A {@link MethodDecorator}.
  */
-export function MutationWithZod<T extends AnyZodObject>(
-  input: T,
-  options: MutationOptions<T>
-): MethodDecorator
+export function MutationWithZod<T extends AnyZodObject>(input: T, options: MutationOptions<T>): MethodDecorator
 
-export function MutationWithZod<T extends AnyZodObject>(
-  input: T,
-  nameOrOptions?: string | MutationOptions<T>
-) {
+export function MutationWithZod<T extends AnyZodObject>(input: T, nameOrOptions?: string | MutationOptions<T>) {
   return MethodWithZod(input, nameOrOptions, Mutation)
 }

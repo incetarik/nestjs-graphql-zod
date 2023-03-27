@@ -1,4 +1,4 @@
-import type { IModelFromZodOptionsWithMapper } from '../model-from-zod'
+import type { IModelFromZodOptions } from '../model-from-zod'
 import type {
   ArgsOptions,
   BaseTypeOptions,
@@ -26,13 +26,12 @@ export type WrapWithZodOptions<
 /**
  * The base options for providing `zod` property containing options.
  */
-export interface BaseOptions<T extends AnyZodObject> {
+export interface BaseOptions<T extends ZodType> {
   /**
    * Options for model creation from `zod`.
    *
-   * @type {IModelFromZodOptionsWithMapper<T>}
+   * @type {IModelFromZodOptions<T>}
    * @memberof QueryOptions
    */
-  zod?: IModelFromZodOptionsWithMapper<T>
+  zod?: IModelFromZodOptions<T>
 }
-

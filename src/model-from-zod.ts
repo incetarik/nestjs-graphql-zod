@@ -1,4 +1,4 @@
-import { AnyZodObject, infer as Infer, ParseParams, ZodError } from 'zod'
+import { AnyZodObject, ParseParams, TypeOf, ZodError, ZodTypeAny } from 'zod'
 
 import { ObjectType, ObjectTypeOptions } from '@nestjs/graphql'
 
@@ -6,8 +6,7 @@ import { extractNameAndDescription, parseShape } from './helpers'
 import { ZodObjectKey } from './helpers/constants'
 
 import type { Type } from '@nestjs/common'
-
-export interface IModelFromZodOptions<T extends AnyZodObject>
+export interface IModelFromZodOptions<T extends ZodTypeAny>
   extends ObjectTypeOptions {
   /**
    * The name of the model class in GraphQL schema.
@@ -19,7 +18,7 @@ export interface IModelFromZodOptions<T extends AnyZodObject>
 
   /**
    * Indicates whether or not the property should be parsed safely.
-   * 
+   *
    * If this property is set to `true`, then `safeParse` will be used and
    * if parsing is failed, the {@link onParseError} function will be called
    * to provide a replace value.
@@ -33,7 +32,7 @@ export interface IModelFromZodOptions<T extends AnyZodObject>
   /**
    * Indicates if the parsing should throw when no value could be set
    * when there was an error during parsing.
-   * 
+   *
    * If this property is set to `true`, then the value will be `undefined`
    * if data could not be parsed successfully.
    *
@@ -45,7 +44,7 @@ export interface IModelFromZodOptions<T extends AnyZodObject>
   /**
    * Indicates whether or not the zod object should be kept inside the
    * dynamically generated class.
-   * 
+   *
    * If this property is set to `true`, use {@link getZodObject} function
    * to get the source object from a target.
    *
@@ -65,15 +64,15 @@ export interface IModelFromZodOptions<T extends AnyZodObject>
    * @param {ZodError<T[ K ]>} error The error thrown during parsing.
    * @return {*}  {(T[ keyof T ] | void)} An alternative fallback value to
    * replace and dismiss the error, or nothing.
-   * 
+   *
    * @memberof IModelFromZodOptions
    */
-  onParseError?<K extends keyof Infer<T>>(
+  onParseError?<K extends keyof TypeOf<T>>(
     key: K,
-    newValue: Infer<T>[ K ],
-    oldValue: Infer<T>[ K ] | undefined,
-    error: ZodError<Infer<T>[ K ]>
-  ): Infer<T>[ keyof Infer<T> ] | void
+    newValue: TypeOf<T>[ K ],
+    oldValue: TypeOf<T>[ K ] | undefined,
+    error: ZodError<TypeOf<T>[ K ]>
+  ): TypeOf<T>[ keyof TypeOf<T> ] | void
 
   /**
    * A function that can be used for providing {@link zod.ParseParams} for
@@ -84,34 +83,17 @@ export interface IModelFromZodOptions<T extends AnyZodObject>
    * @param {(T[ K ] | undefined)} previousValue The previously set value.
    * @return {Partial<zod.ParseParams>} The {@link zod.ParseParams} for the
    * current parsing stage.
-   * 
+   *
    * @memberof IModelFromZodOptions
    */
-  onParsing?<K extends keyof Infer<T>>(
+  onParsing?<K extends keyof TypeOf<T>>(
     key: K,
-    previousValue: Infer<T>[ K ] | undefined
+    previousValue: TypeOf<T>[ K ] | undefined
   ): Partial<ParseParams>
 }
 
-export interface IModelFromZodOptionsWithMapper<
-  T extends AnyZodObject,
-  PM extends Mapper<T> = Mapper<T>
-  >
-  extends IModelFromZodOptions<T> {
-  /**
-   * A map that will be used for creating the properties on the generated
-   * class.
-   * 
-   * This property can be used to rename the properties from `zod` to `class`.
-   *
-   * @type {PM}
-   * @memberof IModelFromZodOptions
-   */
-  readonly propertyMap?: Readonly<PM>
-}
-
-type Options<T extends AnyZodObject, PM extends Mapper<T> = Mapper<T>>
-  = IModelFromZodOptionsWithMapper<T, PM>
+type Options<T extends ZodTypeAny>
+  = IModelFromZodOptions<T>
   & {
     /**
      * Provides the decorator to decorate the dynamically generated class.
@@ -124,12 +106,7 @@ type Options<T extends AnyZodObject, PM extends Mapper<T> = Mapper<T>>
     getDecorator?(zodInput: T, key: string): ClassDecorator
   }
 
-type ToType<T extends object, O>
-  = O extends IModelFromZodOptionsWithMapper<any, infer PMI>
-  ? { new(): MapKeys<T, PMI> }
-  : never
-
-let _generatedClasses: WeakMap<AnyZodObject, Type> | undefined
+let _generatedClasses: WeakMap<ZodTypeAny, Type> | undefined
 
 /**
  * Creates a dynamic class which will be compatible with GraphQL, from a
@@ -149,16 +126,15 @@ export function modelFromZodBase<
   zodInput: T,
   options: O = {} as O,
   decorator: ClassDecorator
-): ToType<T, O> {
-
+): Type<TypeOf<T>> {
   const previousRecord
-    = (_generatedClasses ??= new WeakMap<AnyZodObject, Type>())
+    = (_generatedClasses ??= new WeakMap<ZodTypeAny, Type>())
       .get(zodInput)
 
-  if (previousRecord) return previousRecord as ToType<T, O>
+  if (previousRecord) return previousRecord
 
   const { name, description } = extractNameAndDescription(zodInput, options)
-  let { keepZodObject = false, propertyMap } = options
+  let { keepZodObject = false } = options
 
   class DynamicZodModel {}
   const prototype = DynamicZodModel.prototype
@@ -173,23 +149,20 @@ export function modelFromZodBase<
     })
   }
 
-  const parsed = parseShape(zodInput, {
+  const parsed = parseShape(zodInput as any, {
     ...options,
     name,
     description,
-    getDecorator: options.getDecorator
+    getDecorator: options.getDecorator as any,
   })
 
   for (const { descriptor, key, decorateFieldProperty } of parsed) {
-    const targetKey
-      = propertyMap?.[ key as keyof Infer<T> ] ?? key as keyof Infer<T>
-
-    Object.defineProperty(prototype, targetKey, descriptor)
-    decorateFieldProperty(prototype, targetKey as string)
+    Object.defineProperty(prototype, key as string, descriptor)
+    decorateFieldProperty(prototype, key as string)
   }
 
   _generatedClasses.set(zodInput, DynamicZodModel)
-  return DynamicZodModel as ToType<T, O>
+  return DynamicZodModel as Type<TypeOf<T>>
 }
 
 /**
@@ -205,8 +178,8 @@ export function modelFromZodBase<
  */
 export function modelFromZod<
   T extends AnyZodObject,
-  O extends IModelFromZodOptionsWithMapper<T>
->(zodInput: T, options: O = {} as O): ToType<T, O> {
+  O extends IModelFromZodOptions<T>
+  >(zodInput: T, options: O = {} as O): Type<TypeOf<T>> {
   const { name, description } = extractNameAndDescription(zodInput, options)
 
   const decorator = ObjectType(name, {
