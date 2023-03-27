@@ -1,15 +1,17 @@
-import * as zod from 'zod'
+import type { IModelFromZodOptions } from '../model-from-zod'
+
+import { ZodObject, ZodType } from 'zod'
 
 import { Field, NullableList } from '@nestjs/graphql'
 
+import { getDefaultTypeProvider } from '../decorators/common'
 import { buildEnumType } from './build-enum-type'
 import { createZodPropertyDescriptor } from './create-zod-property-descriptor'
 import { generateDefaults } from './generate-defaults'
 import { getDescription } from './get-description'
+import { getFieldInfoFromZod, ZodTypeInfo } from './get-field-info-from-zod'
+import { getZodObjectName } from './get-zod-object-name'
 import { isZodInstance } from './is-zod-instance'
-import { zodToTypeInfo } from './zod-to-type-info'
-
-import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**
  * An interface describing a parsed field.
@@ -21,14 +23,16 @@ export interface ParsedField {
    * @type {string}
    */
   key: string
+
   /**
    * The type of the field of the parsed property.
-   * 
+   *
    * Can be used for GraphQL @{@link Field} decorator.
    *
    * @type {*}
    */
   fieldType: any
+
   /**
    * The {@link PropertyDescriptor} of the parsed property.
    *
@@ -44,19 +48,7 @@ export interface ParsedField {
   decorateFieldProperty: PropertyDecorator
 }
 
-const PARSED_TYPES = [
-  zod.ZodArray,
-  zod.ZodBoolean,
-  zod.ZodString,
-  zod.ZodNumber,
-  zod.ZodEnum,
-  zod.ZodOptional,
-  zod.ZodObject,
-  zod.ZodDefault,
-  zod.ZodTransformer,
-] as const
-
-type Options<T extends zod.AnyZodObject>
+type ParseOptions<T extends ZodType>
   = IModelFromZodOptions<T>
   & {
     /**
@@ -76,74 +68,128 @@ type Options<T extends zod.AnyZodObject>
  * @export
  * @template T The type of the zod object.
  * @param {T} zodInput The zod object input.
- * @param {Options<T>} [options={}] The options for the parsing.
+ * @param {ParseOptions<T>} [options={}] The options for the parsing.
  * @return {ParsedField[]} An array of {@link ParsedField}.
  */
-export function parseShape<T extends zod.AnyZodObject>(
+export function parseShape<T extends ZodType>(
   zodInput: T,
-  options: Options<T> = {}
-) {
-  const parsedShapes: ParsedField[] = []
-
-  for (const _key in zodInput.shape) {
-    const key = _key as (keyof T) & string
-    const prop = zodInput.shape[ key ]
-
-    let propertyDescriptor: PropertyDescriptor
-
-    // Changed constructor name checking because of the version mismatch, the
-    // objects may have different prototypes even if they both are zod objects.
-    if (PARSED_TYPES.some(it => isZodInstance(it, prop))) {
-      propertyDescriptor = createZodPropertyDescriptor(key, prop, options)
-    }
-    else {
-      throw new Error(`"${key}" cannot be processed`)
-    }
-
-    const elementType = zodToTypeInfo(key, prop, options)
-
-    const {
-      isNullable,
-      isOptional,
-      isEnum,
-      isOfArray,
-      isItemNullable,
-      isItemOptional,
-    } = elementType
-
-    if (isEnum) {
-      buildEnumType(key, elementType, options)
-    }
-
-    const { type: fieldType } = elementType
-
-    let defaultValue = elementType.isType ? undefined : generateDefaults(prop)
-    let nullable: boolean | NullableList = isNullable || isOptional
-
-    if (isOfArray) {
-      if (isItemNullable || isItemOptional) {
-        if (nullable) {
-          nullable = 'itemsAndList'
-        }
-        else {
-          nullable = 'items'
-          defaultValue = undefined
-        }
-      }
-    }
-
-    parsedShapes.push({
-      key,
-      fieldType,
-      descriptor: propertyDescriptor,
-      decorateFieldProperty: Field(() => fieldType, {
-        name: key,
-        nullable,
-        defaultValue,
-        description: getDescription(prop),
-      })
-    })
+  options: ParseOptions<T> = {}
+): ParsedField[] {
+  // Parsing an object shape
+  if (isZodInstance(ZodObject, zodInput)) {
+    return Object
+      .entries(zodInput.shape)
+      .map(([ key, value ]) => parseSingleShape(key, value as ZodType, options))
   }
 
-  return parsedShapes
+  // Parsing a primitive shape
+  const parsedShape = parseSingleShape('', zodInput, options)
+  return [ parsedShape ]
+}
+
+/**
+ * Gets the nullability of a field from type info.
+ *
+ * @export
+ * @param {ZodTypeInfo} typeInfo The type info.
+ * @return {(boolean | NullableList)} The nullability state.
+ */
+export function getNullability(typeInfo: ZodTypeInfo): boolean | NullableList {
+  const {
+    isNullable,
+    isOptional,
+    isOfArray,
+    isItemOptional,
+    isItemNullable,
+  } = typeInfo
+
+  let nullable: boolean | NullableList = isNullable || isOptional
+
+  if (isOfArray) {
+    if (isItemNullable || isItemOptional) {
+      if (nullable) {
+        nullable = 'itemsAndList'
+      }
+      else {
+        nullable = 'items'
+      }
+    }
+  }
+
+  return nullable
+}
+
+/**
+ * Parses a field from given parameters.
+ *
+ * @template T The zod type that will be parsed.
+ * @param {string} key The proprety key of the zod type.
+ * @param {T} input The zod type input.
+ * @param {ParseOptions<T>} options The options for parsing.
+ * @return {ParsedField} The parsed field output.
+ */
+function parseSingleShape<T extends ZodType>(key: string, input: T, options: ParseOptions<T>): ParsedField {
+  const elementType = getFieldInfoFromZod(key, input, options)
+
+  const { isEnum } = elementType
+
+  if (isEnum) {
+    buildEnumType(key, elementType, options)
+  }
+
+  const { type: fieldType } = elementType
+
+  let defaultValue = elementType.isType ? undefined : generateDefaults(input)
+  const nullable = getNullability(elementType)
+
+  if (nullable === 'items') {
+    defaultValue = undefined
+  }
+
+  const description = getDescription(input)
+  const descriptor = buildPropertyDescriptor(key, input, options)
+
+  return {
+    key,
+    fieldType,
+    descriptor,
+    decorateFieldProperty: Field(() => fieldType, {
+      name: key,
+      nullable,
+      defaultValue,
+      description,
+    })
+  }
+}
+
+/**
+ * Creates a property descriptor for given parameters.
+ *
+ * @param {string} key The key of the input in its object.
+ * @param {ZodType} input The zod type input.
+ * @param {ParseOptions<ZodType>} options The parse options.
+ * @return {PropertyDescriptor} The property descriptor created for it,
+ * if the operation was successful.
+ *
+ * @throws {Error} - The input was not processable and there was no
+ * GraphQLScalar type provided for it.
+ */
+function buildPropertyDescriptor(key: string, input: ZodType, options: ParseOptions<ZodType>): PropertyDescriptor {
+  if (getFieldInfoFromZod.canParse(input)) {
+    return createZodPropertyDescriptor(key, input, options)
+  }
+
+  const { getScalarTypeFor = getDefaultTypeProvider() } = options
+  const name = getZodObjectName(input)
+
+  if (typeof getScalarTypeFor == 'function') {
+    const scalarType = getScalarTypeFor(name)
+
+    if (typeof scalarType === 'object') {
+      return createZodPropertyDescriptor(key, input, options)
+    }
+  }
+
+  let error = `"${key || name}" could not be processed, a corresponding GraphQL scalar type should be provided.`
+  throw new Error(error)
 }

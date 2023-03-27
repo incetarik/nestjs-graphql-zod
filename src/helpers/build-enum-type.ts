@@ -7,7 +7,7 @@ import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
 import { withSuffix } from './with-suffix'
 
-import type { ZodTypeInfo } from './zod-to-type-info'
+import type { ZodTypeInfo } from './get-field-info-from-zod'
 import type { IModelFromZodOptions } from '../model-from-zod'
 
 /**

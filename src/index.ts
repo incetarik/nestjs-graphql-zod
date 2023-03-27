@@ -1,5 +1,5 @@
 export * from './decorators'
-export { getZodObject } from './helpers'
+export { getZodObject, getZodObjectName } from './helpers'
 
 export {
   IModelFromZodOptions,
