@@ -4,7 +4,7 @@ import { isZodInstance } from './is-zod-instance'
 
 /**
  * Generates the default values for given object.
- * 
+ *
  * This function is recursive with {@link generateDefaults}.
  *
  * @param {AnyZodObject} input The input.
@@ -22,7 +22,7 @@ function generateDefaultsForObject(input: AnyZodObject) {
 }
 
 /**
- * Genreates the default vales for given input.
+ * Generates the default vales for given input.
  *
  * @export
  * @template T The type of the input.
