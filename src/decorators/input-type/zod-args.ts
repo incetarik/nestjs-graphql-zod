@@ -1,15 +1,32 @@
+import { AnyZodObject, infer as Infer, ZodObject, ZodTypeAny } from 'zod'
+
 import { PipeTransform, Type } from '@nestjs/common'
 import { Args, ArgsOptions } from '@nestjs/graphql'
 
-import { extractNameAndDescription } from '../../helpers'
+import { extractNameAndDescription, getNullability } from '../../helpers'
+import { getDescription } from '../../helpers/get-description'
+import { getFieldInfoFromZod } from '../../helpers/get-field-info-from-zod'
+import { isZodInstance } from '../../helpers/is-zod-instance'
 import { ZodValidatorPipe } from '../../helpers/zod-validator.pipe'
+import { TypeProvider } from '../../types/type-provider'
+import { getDefaultTypeProvider } from '../common'
 import { inputFromZod } from './input-from-zod'
-
-import type { AnyZodObject, infer as Infer } from 'zod'
 
 type PT<F = any, T = any> = PipeTransform<F, T> | Type<PipeTransform<F, T>>
 
-let GENERATED_TYPES: WeakMap<AnyZodObject, object> | undefined
+type CustomDecoratorOptions = {
+  /**
+   * Gets the scalar type for given type name.
+   *
+   * @param {string} typeName The type name corresponding to the zod object.
+   * @return {GraphQLScalarType} The scalar type for the zod object.
+   */
+  getScalarTypeFor?: TypeProvider
+}
+
+type DecoratorOptions = ArgsOptions & CustomDecoratorOptions
+
+let GENERATED_TYPES: WeakMap<ZodTypeAny, object> | undefined
 let USED_NAMES: string[] | undefined
 
 /**
@@ -17,16 +34,29 @@ let USED_NAMES: string[] | undefined
  *
  * @template T The type of the zod object passed.
  * @param {T} input The zod scheme object.
+ * @param {CustomDecoratorOptions} options The custom decorator options.
  * @return {*} The newly or previously created class instance.
  */
-function _getOrCreateRegisteredType<T extends AnyZodObject>(input: T) {
+function _getOrCreateRegisteredType<T extends AnyZodObject>(
+  input: T,
+  options: CustomDecoratorOptions
+) {
   if (!GENERATED_TYPES) { GENERATED_TYPES = new WeakMap() }
   let RegisteredType = GENERATED_TYPES.get(input) as Type<Infer<T>> | undefined
   if (RegisteredType) return RegisteredType
 
   const { name, description } = extractNameAndDescription(input, {})
   const safeName = _getSafeName(name)
-  RegisteredType = inputFromZod(input, { name: safeName, description })
+  RegisteredType = inputFromZod(input, {
+    name: safeName,
+    description,
+    zod: {
+      name: safeName,
+      description,
+      getScalarTypeFor: options.getScalarTypeFor,
+    }
+  })
+
   GENERATED_TYPES.set(input, RegisteredType)
   return RegisteredType
 }
@@ -67,17 +97,17 @@ function _getSafeName(name: string): string {
  * @param {string} property The name of the property for the GraphQL request
  * argument.
  *
- * @param {ArgsOptions} options The options for {@link Args} decorator.
+ * @param {DecoratorOptions} options The options for {@link Args} decorator.
  * @param {...PT[]} pipes The pipes that will be passed to {@link Args}
  * decorator.
  *
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function ZodArgs<T extends AnyZodObject>(
+export function ZodArgs<T extends ZodTypeAny>(
   input: T,
   property: string,
-  options: ArgsOptions,
+  options: DecoratorOptions,
   ...pipes: PT[]
 ): ParameterDecorator
 
@@ -88,16 +118,16 @@ export function ZodArgs<T extends AnyZodObject>(
  * @export
  * @template T The type of the `zod` validation input.
  * @param {T} input The `zod` validation schema object.
- * @param {ArgsOptions} options The options for {@link Args} decorator.
+ * @param {DecoratorOptions} options The options for {@link Args} decorator.
  * @param {...PT[]} pipes The pipes that will be passed to {@link Args}
  * decorator.
  *
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function ZodArgs<T extends AnyZodObject>(
+export function ZodArgs<T extends ZodTypeAny>(
   input: T,
-  options: ArgsOptions,
+  options: DecoratorOptions,
   ...pipes: PT[]
 ): ParameterDecorator
 
@@ -117,7 +147,7 @@ export function ZodArgs<T extends AnyZodObject>(
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function ZodArgs<T extends AnyZodObject>(
+export function ZodArgs<T extends ZodTypeAny>(
   input: T,
   property: string,
   ...pipes: PT[]
@@ -136,19 +166,19 @@ export function ZodArgs<T extends AnyZodObject>(
  * @return {ParameterDecorator} A {@link ParameterDecorator} for GraphQL
  * argument.
  */
-export function ZodArgs<T extends AnyZodObject>(
+export function ZodArgs<T extends ZodTypeAny>(
   input: T,
   ...pipes: PT[]
 ): ParameterDecorator
 
-export function ZodArgs<T extends AnyZodObject>(
+export function ZodArgs<T extends ZodTypeAny>(
   input: T,
-  propertyOrOptions?: string | ArgsOptions | PT,
-  optionsOrPipe?: ArgsOptions | PT,
+  propertyOrOptions?: string | DecoratorOptions | PT,
+  optionsOrPipe?: DecoratorOptions | PT,
   ...pipes: PT[]
 ): ParameterDecorator {
   let property: string | undefined
-  let options: ArgsOptions | undefined
+  let options: DecoratorOptions | undefined
 
   // Parameter normalization
   if (typeof propertyOrOptions === 'string') {
@@ -179,13 +209,54 @@ export function ZodArgs<T extends AnyZodObject>(
     }
   }
 
-  const RegisteredType = _getOrCreateRegisteredType(input)
-  pipes.unshift(new ZodValidatorPipe(input, RegisteredType))
-
   options ??= {}
-  options.type ??= () => RegisteredType
-  options.name ??= 'input'
+  const { getScalarTypeFor = getDefaultTypeProvider() } = options
 
+  if (!isZodInstance(ZodObject, input)) {
+    pipes.unshift(new ZodValidatorPipe(input))
+    const typeInfo = getFieldInfoFromZod('', input, options)
+    const nullability = getNullability(typeInfo)
+    const description = getDescription(input)
+
+    const { type } = typeInfo
+    options.type = () => type
+    options.nullable = nullability
+    options.description ??= description
+  }
+  else {
+    const RegisteredType = _getOrCreateRegisteredType(
+      input as AnyZodObject,
+      {
+        getScalarTypeFor
+      }
+    )
+
+    pipes.unshift(new ZodValidatorPipe(input, RegisteredType))
+    options.type ??= () => RegisteredType
+  }
+
+  if (options.name) {
+    return prepareDecorator(property, options, ...pipes)
+  }
+  else {
+    return function _anonymousZodArgsWrapper(target, propKey, index) {
+      options ??= {}
+      options!.name = `arg_${index}`
+      const decorator = prepareDecorator(property, options, ...pipes)
+      decorator(target, propKey, index)
+    }
+  }
+}
+
+/**
+ * Gets a prepared {@link ParameterDecorator} after {@link Args} is called.
+ *
+ * @param {string} [property] The property string.
+ * @param {DecoratorOptions} [options] The decorator options.
+ * @param {...PT[]} pipes The pipes to apply.
+ * @return {ParameterDecorator} The built parameter decorator.
+ */
+function prepareDecorator(property?: string, options?: DecoratorOptions, ...pipes: PT[]): ParameterDecorator {
   let args: ParameterDecorator
   if (typeof property === 'string') {
     if (typeof options === 'object') {
@@ -209,7 +280,7 @@ export module ZodArgs {
   /**
    * A type for inferring the type of a given `zod` validation object.
    */
-  export type Of<T extends AnyZodObject> = Infer<T>
+  export type Of<T extends ZodTypeAny> = Infer<T>
 
   /**
    * Frees the used objects during the startup.

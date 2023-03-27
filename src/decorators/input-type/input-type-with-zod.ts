@@ -50,8 +50,7 @@ export function InputTypeWithZod<T extends AnyZodObject>(
   nameOrOptions?: string | Options<T>,
   options?: Options<T>
 ): ClassDecorator {
-  type InnerType = Infer<T>
-
+  //#region Parameter Normalization - `name`, `zodOptions`, `inputTypeOptions`
   if (typeof nameOrOptions === 'object') {
     options = nameOrOptions
     nameOrOptions = undefined
@@ -69,6 +68,7 @@ export function InputTypeWithZod<T extends AnyZodObject>(
     const { name: _, zod: __, ...rest } = options
     inputTypeOptions = rest
   }
+  //#endregion
 
   const decorate = buildInputTypeDecorator(name, inputTypeOptions)
 
@@ -94,8 +94,12 @@ export function InputTypeWithZod<T extends AnyZodObject>(
       name,
       description,
       getDecorator(_, key) {
-        return getInputTypeDecorator(key, inputTypeOptions)
-      }
+        // Returning another `@InputType()` as we have another key now, that
+        // will be another sub class built, therefore we need to decorate that
+        // with another `@InputType()`.
+        return buildInputTypeDecorator(key, inputTypeOptions)
+      },
+      getScalarTypeFor: zodOptions.getScalarTypeFor,
     })
 
     for (const { descriptor, key, decorateFieldProperty } of parsed) {

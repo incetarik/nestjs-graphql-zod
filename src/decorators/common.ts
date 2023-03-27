@@ -7,9 +7,11 @@ import type { BaseTypeOptions } from '@nestjs/graphql'
 
 import type { DynamicZodModelClass, GraphQLMDF } from './types'
 import type { WrapWithZodOptions } from './zod-options-wrapper.interface'
+import type { TypeProvider } from '../types/type-provider'
 
-type BaseOptions<T extends AnyZodObject>
-  = WrapWithZodOptions<BaseTypeOptions, T>
+type BaseOptions<T extends AnyZodObject> = WrapWithZodOptions<BaseTypeOptions, T>
+
+let DEFAULT_TYPE_PROVIDER: TypeProvider | undefined
 
 /**
  * Returns a method decorator that is built with `zod` validation object.
@@ -89,6 +91,33 @@ export function MethodWithZod<T extends AnyZodObject>(
     input,
     nameOrOptions,
     graphqlDecoratorFactory,
-    modelFromZod(input, zodOptions)
+    modelFromZod(input, zodOptions) as DynamicZodModelClass<T>
   )
+}
+
+/**
+ * Sets the default type provider for custom GraphQL Scalars.
+ *
+ * The type name will be calculated and it will be similar to `TypeScript`
+ * types such as: `Record<Optional<String>, Array<Number | String>>`.
+ *
+ * The user will provide custom scalar type to use for that kind of
+ * zod validation.
+ *
+ * @export
+ * @param {TypeProvider} fn The type provider.
+ */
+export function setDefaultTypeProvider(fn: TypeProvider) {
+  DEFAULT_TYPE_PROVIDER = fn
+}
+
+/**
+ * Gets the default type provided set previously
+ * via {@link setDefaultTypeProvider}.
+ *
+ * @export
+ * @return {TypeProvider | undefined} The default type provider.
+ */
+export function getDefaultTypeProvider(): TypeProvider | undefined {
+  return DEFAULT_TYPE_PROVIDER
 }

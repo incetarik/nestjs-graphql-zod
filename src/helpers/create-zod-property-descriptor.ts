@@ -1,8 +1,8 @@
 import {
-  AnyZodObject,
   infer as Infer,
   ParseParams,
   ZodDefault,
+  ZodType,
   ZodTypeAny,
 } from 'zod'
 
@@ -21,7 +21,7 @@ import type { IModelFromZodOptions } from '../model-from-zod'
  * @param {IModelFromZodOptions<T>} opts The options.
  * @return {PropertyDescriptor} A {@link PropertyDescriptor}.
  */
-export function createZodPropertyDescriptor<T extends AnyZodObject>(
+export function createZodPropertyDescriptor<T extends ZodType>(
   key: keyof Infer<T>,
   input: ZodTypeAny,
   opts: IModelFromZodOptions<T>

@@ -1,4 +1,4 @@
-import { AnyZodObject, ZodError } from 'zod'
+import { ZodError, ZodType } from 'zod'
 
 import {
   ArgumentMetadata,
@@ -16,10 +16,10 @@ import {
  * @implements {PipeTransform}
  * @template T The type of the `zod` validation schema.
  */
-export class ZodValidatorPipe<T extends AnyZodObject> implements PipeTransform {
+export class ZodValidatorPipe<T extends ZodType> implements PipeTransform {
   constructor(
     protected readonly input: T,
-    protected readonly klass: Type<any>
+    protected readonly klass?: Type<any>
   ) {}
 
   async transform(value: any, _metadata: ArgumentMetadata): Promise<any> {

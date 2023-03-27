@@ -6,6 +6,8 @@ import { extractNameAndDescription, parseShape } from './helpers'
 import { ZodObjectKey } from './helpers/constants'
 
 import type { Type } from '@nestjs/common'
+import type { TypeProvider } from './types/type-provider'
+
 export interface IModelFromZodOptions<T extends ZodTypeAny>
   extends ObjectTypeOptions {
   /**
@@ -90,6 +92,28 @@ export interface IModelFromZodOptions<T extends ZodTypeAny>
     key: K,
     previousValue: TypeOf<T>[ K ] | undefined
   ): Partial<ParseParams>
+
+  /**
+   * Gets the scalar type for given type name.
+   *
+   * @param {string} typeName The type name corresponding to the zod object.
+   * @return {GraphQLScalarType} The scalar type for the zod object.
+   */
+  getScalarTypeFor?: TypeProvider
+
+  /**
+   * Provides a name for nested classes when they are created dynamically from
+   * object properties of zod types.
+   *
+   * @param {string} parentName The parent class name.
+   * @param {string} propertyKey The property key/name.
+   * @return {(string | undefined)} The name to set for the class. If
+   * any value returned other than a `string`, the class name will be generated
+   * automatically.
+   *
+   * @memberof IModelFromZodOptions
+  */
+  provideNameForNestedClass?(parentName: string, propertyKey: string): string | undefined
 }
 
 type Options<T extends ZodTypeAny>
@@ -149,7 +173,7 @@ export function modelFromZodBase<
     })
   }
 
-  const parsed = parseShape(zodInput as any, {
+  const parsed = parseShape(zodInput, {
     ...options,
     name,
     description,

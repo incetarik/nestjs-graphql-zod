@@ -15,12 +15,12 @@ type Fn = (...args: any) => any
  * @template F The type of the function that will be replaced.
  * @param {Function} originalFunction The original function which will be
  * replaced.
- * 
+ *
  * @param {T} input The zod validation object.
  * @param {DynamicZodModelClass<T>} model The dynamically built zod class that
  * has the validations installed.
- * 
- * @return {F} 
+ *
+ * @return {F}
  */
 export function decorateWithZodInput<
   T extends AnyZodObject,
