@@ -14,7 +14,7 @@ export const ZodObjectKey = Symbol('[[DynamicZodModelSource]]')
  * @export
  * @return {number} The registered class count.
  */
-export function getRegisterCount() {
+export function getRegisterCount(): number {
   return registerCount
 }
 
@@ -24,6 +24,6 @@ export function getRegisterCount() {
  * @export
  * @return {number} The new registered class count.
  */
-export function getAndIncreaseRegisterCount() {
+export function getAndIncreaseRegisterCount(): number {
   return ++registerCount
 }
