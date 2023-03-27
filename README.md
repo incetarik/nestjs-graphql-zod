@@ -3,7 +3,7 @@
 **Use `zod` validation objects in your GraphQL actions!**
 
 This library provides utility functions and decorators similar to NestJS
-GraphQL decorators that lets you work with `zod` objects without the need of 
+GraphQL decorators that lets you work with `zod` objects without the need of
 writing GraphQL schema classes.
 
 - Nested `zod.object(...)` calls are supported. These will lead to generate
@@ -11,12 +11,15 @@ another GraphQL model for each definition.
 
 - Descriptions are supported. Additionally, for `zod.object(...)` definitions,
 to provide a custom name (instead of the dynamically generated ones) the
-description should be in `{ClassName}:{Description}` format 
+description should be in `{ClassName}:{Description}` format
 (for example `UpdateModel: Contains properties that will be updated`). This
 will cause a model generation with given class name with given description.
 
 - `zod.enum(...)` calls are supported. Enum models will be generated in GraphQL
 schema.
+
+- Primitive types are also supported and they will not cause any custom type
+creation in GraphQL schema file.
 
 ## Decorators
 All the decorators are the same with underlying decorator with an exception that
@@ -30,7 +33,7 @@ possible to use an overload of the decorators provided by this library.
 - `@MutationWithZod`
 - `@SubscriptionWithZod`
 
-These decorators will do **output validation**. 
+These decorators will do **output validation**.
 They take `zod` object and validate the output with given `zod` object.
 
 ### Parameter/Class Decorators
@@ -56,6 +59,14 @@ contain the properties from the given `zod` input.
 used to build the class. For this function to return a defined value, the
 classes should be built with `keepZodObject` option property set to `true`.
 
+- `setDefaultTypeProvider`: Takes a handler that will provide custom
+`GraphQLScalarType`s for any complex schemas. Therefore, it is also possible
+to set, for example, `JSONObject` for `z.record()` validations.
+
+- `getZodObjectName`: This function is producing a type string for the passed
+zod schema. The string will also be provided to the handler passed to
+`setDefaultTypeProvider` function.
+
 ---
 
 ## Setup
@@ -66,7 +77,7 @@ classes should be built with `keepZodObject` option property set to `true`.
     - `@MutationWithZod`
     - `@QueryWithZod`
     - `@SubscriptionWithZod`
-    
+
     or decorators for parameters:
     - `@ZodArgs`
 
@@ -242,7 +253,7 @@ class ExampleResolver() {
     // schema defined above. If the validation was failed, the user will get
     // BadRequest error and this method will not be called.
 
-    // The @ZodArgs(Schema) decorator is behaving like 
+    // The @ZodArgs(Schema) decorator is behaving like
     // @Args() + @InputType() decorators.
     //
     // The @InputType() is applied to underlying class, the @Args() is applied
@@ -294,6 +305,36 @@ input RequestSchema_Changes_Permissions {
 
   """Indicates if the user is an admin"""
   isAdmin: Boolean!
+}
+```
+
+Inline `@ZodArgs` example with complex type input.
+```ts
+
+setDefaultTypeProvider((typeName) => {
+  if (typeName.startsWith('Record')) {
+    return GraphQLJSONObject // a custom scalar type
+  }
+
+  // Otherwise, return no custom scalar type which will cause
+  // a parsing error.
+})
+
+class ExampleResolver() {
+  @Query(() => Boolean)
+  inlineExample(
+    @ZodArgs(zod.number().gt(10).array()) numberArray: number[],
+    @ZodArgs(zod.record(zod.number())) dictionary: Record<string, number>,
+    @ZodArgs(zod.string().url().optional()) urlString?: string,
+  ) {
+    // Here the @ZodArgs(Schema) decorator is inlined and will produce
+    // corresponding schema file. If the types are primitives, there will
+    // be no custom proxy type creation.
+
+    // The record example above will require a custom scalar type to be
+    // provided. The provider function can be set in the decorator properties
+    // or through the global/default setter function as in this example.
+  }
 }
 ```
 
