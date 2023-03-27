@@ -3,6 +3,48 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [3.0.0] - 2023-03-27
+### Added
+- `setDefaultTypeProvider` function which can be used to provide custom GraphQL
+scalar types for complex types. This function will receive a handler function
+which will take the built name representation of the type that is built from
+the zod schema and return a `GraphQLScalarType` to represent that custom type.
+
+  The built name for complex types will be similar to TypeScript types, such as:
+  `Record<Optional<String>, Array<Number | String>>`. For example, for this type
+  it is possible to return a `JSONObject` scalar type to represent this zod type.
+
+  This _Type Provider_ function can be set through this function and also via
+  the decorator properties. Hence, it is possible to set different handlers for
+  different decorators.
+
+- Support for primitives at `@ZodArgs` decorator
+
+  Now it is possible to pass a primitive value validator or array of it, example:
+  ```ts
+  @ZodArgs(z.number().gt(10).optional().array()) input: number[]
+  ```
+  And this decorator will be validating the input passed to the parameter without
+  creating a proxy type for it (as it is primitive).
+
+- Added `getZodObjectName` function.
+
+  This function takes any zod type and builds a string representing the zod
+  structure like TypeScript types as the example above.
+
+### Changed
+- Description parsing is improved. Now the description properties of fields
+will still be extracted if they are under different zod effects such as
+`Optional` or `Nullable` or `Array` etc.
+- Improved error messages during parsing. Now the error messages will provide
+a string that represents the schema that caused the error.
+
+### Removed
+- `IModelFromZodOptionsWithMapper<T>` interface is removed which means that
+`propertyMap` will not be provided any more, there will be no renaming when
+a zod is being converted to a class.
+- `types.d.ts` file.
+
 ## [2.0.3] - 2023-02-07
 ### Changed
 - Provides safe naming mechanism. Now using same name for different or same
@@ -64,8 +106,9 @@ Type checking strategy is now changed to constructor name comparison.
 ### Added
 The initial version of the package.
 
-[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...HEAD
+[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.0.0...HEAD
 
+[3.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...3.0.0
 [2.0.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.0...2.0.1
