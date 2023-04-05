@@ -3,6 +3,19 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [3.1.0] - 2023-04-05
+### Added
+- `setDefaultEnumProvider` function.
+
+  This can be used to provide types for enums parsed from the zod schema. Use this function to return your custom, already registered GraphQL enums instead of dynamic, parsed zod enum. By this way, it would prevent multiple identical enums being generated.
+
+- Added `getDefaultEnumProvider` function.
+
+  This function gets the previously set enum provider function
+  through `setDefaultEnumProvider`.
+
+These functions are also added to the options of `@ZodArgs()`.
+
 ## [3.0.0] - 2023-03-27
 ### Added
 - `setDefaultTypeProvider` function which can be used to provide custom GraphQL
@@ -106,8 +119,9 @@ Type checking strategy is now changed to constructor name comparison.
 ### Added
 The initial version of the package.
 
-[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.0.0...HEAD
+[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.1.0...HEAD
 
+[3.1.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...3.0.0
 [2.0.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.1...2.0.2
