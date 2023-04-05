@@ -1,12 +1,13 @@
+import type { Type } from '@nestjs/common'
+import type { EnumProvider } from './types/enum-provider'
+import type { TypeProvider } from './types/type-provider'
+
 import { AnyZodObject, ParseParams, TypeOf, ZodError, ZodTypeAny } from 'zod'
 
 import { ObjectType, ObjectTypeOptions } from '@nestjs/graphql'
 
 import { extractNameAndDescription, parseShape } from './helpers'
 import { ZodObjectKey } from './helpers/constants'
-
-import type { Type } from '@nestjs/common'
-import type { TypeProvider } from './types/type-provider'
 
 export interface IModelFromZodOptions<T extends ZodTypeAny>
   extends ObjectTypeOptions {
@@ -114,6 +115,25 @@ export interface IModelFromZodOptions<T extends ZodTypeAny>
    * @memberof IModelFromZodOptions
   */
   provideNameForNestedClass?(parentName: string, propertyKey: string): string | undefined
+
+  /**
+   * Gets an enum type for given information.
+   *
+   * Use this function to prevent creating different enums in GraphQL schema
+   * if you are going to use same values in different places.
+   *
+   * @param {string | undefined} name The parent name that contains the enum
+   * type.
+   * @param {string} key The property name of the enum.
+   * @param {(Record<string, string | number>)} enumObject The enum object
+   * that is extracted from the zod.
+   * @return {(Record<string, string | number> | undefined)} The enum
+   * that will be used instead of creating a new one. If `undefined` is
+   * returned, then a new enum will be created.
+   *
+   * @memberof IModelFromZodOptions
+   */
+  getEnumType?: EnumProvider
 }
 
 type Options<T extends ZodTypeAny>
