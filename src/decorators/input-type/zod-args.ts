@@ -8,6 +8,7 @@ import { getDescription } from '../../helpers/get-description'
 import { getFieldInfoFromZod } from '../../helpers/get-field-info-from-zod'
 import { isZodInstance } from '../../helpers/is-zod-instance'
 import { ZodValidatorPipe } from '../../helpers/zod-validator.pipe'
+import { EnumProvider } from '../../types/enum-provider'
 import { TypeProvider } from '../../types/type-provider'
 import { getDefaultTypeProvider } from '../common'
 import { inputFromZod } from './input-from-zod'
@@ -22,6 +23,39 @@ type CustomDecoratorOptions = {
    * @return {GraphQLScalarType} The scalar type for the zod object.
    */
   getScalarTypeFor?: TypeProvider
+
+  /**
+   * Provides a name for nested classes when they are created dynamically from
+   * object properties of zod types.
+   *
+   * @param {string} parentName The parent class name.
+   * @param {string} propertyKey The property key/name.
+   * @return {(string | undefined)} The name to set for the class. If
+   * any value returned other than a `string`, the class name will be generated
+   * automatically.
+   *
+   * @memberof IModelFromZodOptions
+  */
+  provideNameForNestedClass?(parentName: string, propertyKey: string): string | undefined
+
+  /**
+   * Gets an enum type for given information.
+   *
+   * Use this function to prevent creating different enums in GraphQL schema
+   * if you are going to use same values in different places.
+   *
+   * @param {string | undefined} name The parent name that contains the enum
+   * type.
+   * @param {string} key The property name of the enum.
+   * @param {(Record<string, string | number>)} enumObject The enum object
+   * that is extracted from the zod.
+   * @return {(Record<string, string | number> | undefined)} The enum
+   * that will be used instead of creating a new one. If `undefined` is
+   * returned, then a new enum will be created.
+   *
+   * @memberof IModelFromZodOptions
+   */
+  getEnumType?: EnumProvider
 }
 
 type DecoratorOptions = ArgsOptions & CustomDecoratorOptions
@@ -53,7 +87,9 @@ function _getOrCreateRegisteredType<T extends AnyZodObject>(
     zod: {
       name: safeName,
       description,
+      getEnumType: options.getEnumType,
       getScalarTypeFor: options.getScalarTypeFor,
+      provideNameForNestedClass: options.provideNameForNestedClass,
     }
   })
 
