@@ -2,6 +2,7 @@ import { AnyZodObject, infer as Infer, ZodEnum } from 'zod'
 
 import { registerEnumType } from '@nestjs/graphql'
 
+import { getDefaultEnumProvider } from '../decorators/common'
 import { getRegisterCount } from './constants'
 import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
@@ -9,7 +10,6 @@ import { withSuffix } from './with-suffix'
 
 import type { ZodTypeInfo } from './get-field-info-from-zod'
 import type { IModelFromZodOptions } from '../model-from-zod'
-
 /**
  * Builds an enum type for GraphQL schema.
  *
@@ -31,6 +31,20 @@ export function buildEnumType<T extends AnyZodObject>(
   const { type } = typeInfo
   if (isZodInstance(ZodEnum, type)) {
     const { Enum } = type
+
+    let enumProvider = options.getEnumType ?? getDefaultEnumProvider()
+
+    if (typeof enumProvider === 'function') {
+      const replacement = enumProvider(Enum, {
+        name: String(key),
+        parentName: options.name,
+        description: type.description,
+      })
+
+      if (typeof replacement === 'object' && Enum !== replacement) {
+        return typeInfo.type = replacement
+      }
+    }
 
     const incompatibleKey = getFirstIncompatibleEnumKey(Enum)
     if (incompatibleKey) {
