@@ -1,17 +1,19 @@
-import { IModelFromZodOptions, modelFromZod } from '../model-from-zod'
-import { decorateWithZodInput } from './decorate-with-zod-input'
-import { makeDecoratorFromFactory } from './make-decorator-from-factory'
+import type { DynamicZodModelClass, GraphQLMDF } from './types'
+import type { WrapWithZodOptions } from './zod-options-wrapper.interface'
+import type { TypeProvider } from '../types/type-provider'
+import type { EnumProvider } from '../types/enum-provider'
 
 import type { AnyZodObject } from 'zod'
 import type { BaseTypeOptions } from '@nestjs/graphql'
 
-import type { DynamicZodModelClass, GraphQLMDF } from './types'
-import type { WrapWithZodOptions } from './zod-options-wrapper.interface'
-import type { TypeProvider } from '../types/type-provider'
+import { IModelFromZodOptions, modelFromZod } from '../model-from-zod'
+import { decorateWithZodInput } from './decorate-with-zod-input'
+import { makeDecoratorFromFactory } from './make-decorator-from-factory'
 
 type BaseOptions<T extends AnyZodObject> = WrapWithZodOptions<BaseTypeOptions, T>
 
 let DEFAULT_TYPE_PROVIDER: TypeProvider | undefined
+let DEFAULT_ENUM_PROVIDER: EnumProvider | undefined
 
 /**
  * Returns a method decorator that is built with `zod` validation object.
@@ -120,4 +122,25 @@ export function setDefaultTypeProvider(fn: TypeProvider) {
  */
 export function getDefaultTypeProvider(): TypeProvider | undefined {
   return DEFAULT_TYPE_PROVIDER
+}
+
+/**
+ * Sets the default enum provider for custom GraphQL Scalars.
+ *
+ * @export
+ * @param {EnumProvider} fn The enum provider.
+ */
+export function setDefaultEnumProvider(fn: EnumProvider) {
+  DEFAULT_ENUM_PROVIDER = fn
+}
+
+/**
+ * Gets the default enum provided set previously
+ * via {@link setDefaultEnumProvider}.
+ *
+ * @export
+ * @return {EnumProvider | undefined} The default enum provider.
+ */
+export function getDefaultEnumProvider(): EnumProvider | undefined {
+  return DEFAULT_ENUM_PROVIDER
 }
