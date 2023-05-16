@@ -1,4 +1,5 @@
 import { GraphQLScalarType } from 'graphql/type/definition'
+import { Int } from '@nestjs/graphql';
 import {
   ZodArray,
   ZodBoolean,
@@ -13,6 +14,7 @@ import {
   ZodType,
   ZodTypeAny,
 } from 'zod'
+import type { ZodNumberCheck } from 'zod';
 
 import { getDefaultTypeProvider } from '../decorators/common'
 import {
@@ -175,10 +177,9 @@ export function getFieldInfoFromZod<T extends ZodTypeAny>(
     }
   }
   else if (isZodInstance(ZodNumber, prop)) {
+    const isInt = Boolean(prop._def.checks.find((check: ZodNumberCheck) => check.kind === 'int'));
     return {
-      // FIXME: There is a known bug in NestJS that does not support `Int` and
-      // `Float` separately therefore we will just be passing `Number` here.
-      type: Number,
+      type: isInt ? Int : Number,
       isOptional: prop.isOptional(),
       isNullable: prop.isNullable(),
     }
