@@ -3,6 +3,16 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [3.2.0] - 2023-05-16
+### Added
+- Now `.int()` can be used and it will have `GraphQLInt` type. Previously
+it was always `Float` type.
+
+  Thanks [Ugzuzg](https://github.com/Ugzuzg) for [their contribution](https://github.com/incetarik/nestjs-graphql-zod/pull/12).
+
+### Changed
+- Dependencies are now moved to `peerDependencies`.
+
 ## [3.1.0] - 2023-04-05
 ### Added
 - `setDefaultEnumProvider` function.
@@ -121,6 +131,7 @@ The initial version of the package.
 
 [Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.1.0...HEAD
 
+[3.2.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...3.0.0
 [2.0.3]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.2...2.0.3
