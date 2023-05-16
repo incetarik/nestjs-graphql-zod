@@ -29,19 +29,15 @@
     "url": "https://github.com/incetarik/nestjs-graphql-zod/issues"
   },
   "homepage": "https://github.com/incetarik/nestjs-graphql-zod#readme",
-  "dependencies": {
-    "@nestjs/graphql": "^10.0.10",
-    "graphql": "^16.3.0",
-    "@nestjs/common": "^8.4.4",
-    "reflect-metadata": "^0.1.13",
-    "@nestjs/core": "^8.4.4",
-    "rxjs": "^7.5.5",
-    "zod": "^3",
-    "class-transformer": "0.5.1"
-  },
   "peerDependencies": {
     "@nestjs/graphql": ">= 10.0",
-    "@nestjs/core": ">= 8.0"
+    "@nestjs/core": ">= 8.0",
+    "class-transformer": ">= 0.5.1",
+    "@nestjs/common": ">= 8.0",
+    "rxjs": ">= 7.5.5",
+    "zod": ">= 3.15",
+    "reflect-metadata": ">= 0.1.13",
+    "graphql": ">= 16.3.0"
   },
   "devDependencies": {
     "typescript": "4.9.5",
