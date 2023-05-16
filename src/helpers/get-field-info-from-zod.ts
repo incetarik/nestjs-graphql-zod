@@ -1,5 +1,4 @@
 import { GraphQLScalarType } from 'graphql/type/definition'
-import { Int } from '@nestjs/graphql';
 import {
   ZodArray,
   ZodBoolean,
@@ -14,7 +13,8 @@ import {
   ZodType,
   ZodTypeAny,
 } from 'zod'
-import type { ZodNumberCheck } from 'zod';
+
+import { Int } from '@nestjs/graphql'
 
 import { getDefaultTypeProvider } from '../decorators/common'
 import {
@@ -25,6 +25,8 @@ import {
 import { getZodObjectName } from './get-zod-object-name'
 import { isZodInstance } from './is-zod-instance'
 import { toTitleCase } from './to-title-case'
+
+import type { ZodNumberCheck } from 'zod'
 
 /**
  * Describes the properties of a zod type that can be used to apply to `Field`
@@ -177,7 +179,8 @@ export function getFieldInfoFromZod<T extends ZodTypeAny>(
     }
   }
   else if (isZodInstance(ZodNumber, prop)) {
-    const isInt = Boolean(prop._def.checks.find((check: ZodNumberCheck) => check.kind === 'int'));
+    const isInt = Boolean(prop._def.checks.find((check: ZodNumberCheck) => check.kind === 'int'))
+
     return {
       type: isInt ? Int : Number,
       isOptional: prop.isOptional(),
