@@ -25,6 +25,14 @@ export interface EnumProviderData {
    * @memberof EnumProviderData
    */
   description?: string
+
+  /**
+   * Indicates that if the enum was a native enum.
+   *
+   * @type {boolean}
+   * @memberof EnumProviderData
+   */
+  isNative?: boolean
 }
 
 /**

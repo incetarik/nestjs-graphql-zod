@@ -39,6 +39,7 @@ export function buildEnumType<T extends AnyZodObject>(
 
     if (typeof enumProvider === 'function') {
       const replacement = enumProvider(Enum, {
+        isNative,
         name: String(key),
         parentName: options.name,
         description: type.description,
