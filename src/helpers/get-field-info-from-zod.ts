@@ -4,6 +4,7 @@ import {
   ZodBoolean,
   ZodDefault,
   ZodEnum,
+  ZodNativeEnum,
   ZodNullable,
   ZodNumber,
   ZodObject,
@@ -248,7 +249,7 @@ export function getFieldInfoFromZod<T extends ZodTypeAny>(
       isOptional: prop.isOptional(),
     }
   }
-  else if (isZodInstance(ZodEnum, prop)) {
+  else if (isZodInstance(ZodEnum, prop) || isZodInstance(ZodNativeEnum, prop)) {
     return {
       type: prop,
       isNullable: prop.isNullable(),

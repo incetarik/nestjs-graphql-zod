@@ -1,4 +1,4 @@
-import { AnyZodObject, infer as Infer, ZodEnum } from 'zod'
+import { AnyZodObject, infer as Infer, ZodEnum, ZodNativeEnum } from 'zod'
 
 import { registerEnumType } from '@nestjs/graphql'
 
@@ -29,8 +29,11 @@ export function buildEnumType<T extends AnyZodObject>(
 ): object {
 
   const { type } = typeInfo
-  if (isZodInstance(ZodEnum, type)) {
-    const { Enum } = type
+
+  const isNative = isZodInstance(ZodNativeEnum, type)
+
+  if (isZodInstance(ZodEnum, type) || isNative) {
+    const Enum = isNative ? type.enum : type.Enum
 
     let enumProvider = options.getEnumType ?? getDefaultEnumProvider()
 
@@ -76,7 +79,7 @@ export function buildEnumType<T extends AnyZodObject>(
   }
 }
 
-function getFirstIncompatibleEnumKey(input: Record<string, string>) {
+function getFirstIncompatibleEnumKey(input: Record<string, string | number>) {
   const digitTest = /^\s*?\d/
 
   for (const key in input) {

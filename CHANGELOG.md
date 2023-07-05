@@ -3,6 +3,10 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
+## [3.3.0] - 2023-07-05
+### Added
+- Support for `NativeEnum`s.
+
 ## [3.2.0] - 2023-05-16
 ### Added
 - Now `.int()` can be used and it will have `GraphQLInt` type. Previously
@@ -129,8 +133,9 @@ Type checking strategy is now changed to constructor name comparison.
 ### Added
 The initial version of the package.
 
-[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.2.0...HEAD
 
+[3.3.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.2.0...3.3.0
 [3.2.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/incetarik/nestjs-graphql-zod/compare/2.0.3...3.0.0
