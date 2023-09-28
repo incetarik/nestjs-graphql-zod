@@ -1,9 +1,10 @@
+import type { BaseOptions } from './zod-options-wrapper.interface'
+import type { DynamicZodModelClass } from './types'
+
 import { plainToInstance } from 'class-transformer'
 import { AnyZodObject, ZodError } from 'zod'
 
 import { BadRequestException } from '@nestjs/common'
-
-import { DynamicZodModelClass } from './types'
 
 type Fn = (...args: any) => any
 
@@ -28,14 +29,23 @@ export function decorateWithZodInput<
 >(
   originalFunction: F,
   input: T,
-  model: DynamicZodModelClass<T>
+  model: DynamicZodModelClass<T>,
+  options?: BaseOptions<T>
 ) {
   return function _modelWithZod(this: any, ...args: Parameters<F>) {
     const result = originalFunction.apply(this, args)
+    let parseToInstance = true
+
+    if (typeof options?.zod === 'object') {
+      if (typeof options.zod.parseToInstance === 'boolean') {
+        parseToInstance = options.zod.parseToInstance
+      }
+    }
+
     if (result instanceof Promise) {
       return result
         .then(output => input.parseAsync(output))
-        .then((output) => plainToInstance(model, output))
+        .then(output => parseToInstance ? plainToInstance(model, output) : output)
         .catch((error: Error) => {
           if (error instanceof ZodError) {
             throw new BadRequestException(error.issues)
@@ -48,7 +58,7 @@ export function decorateWithZodInput<
     else {
       const parseResult = input.safeParse(result)
       if (parseResult.success) {
-        return plainToInstance(model, parseResult.data)
+        return parseToInstance ? plainToInstance(model, parseResult.data) : parseResult.data
       }
       else {
         throw new BadRequestException(parseResult.error.issues)

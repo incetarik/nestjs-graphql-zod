@@ -2,7 +2,7 @@ import type { Type } from '@nestjs/common'
 import type { EnumProvider } from './types/enum-provider'
 import type { TypeProvider } from './types/type-provider'
 
-import { AnyZodObject, ParseParams, TypeOf, ZodError, ZodTypeAny } from 'zod'
+import type { AnyZodObject, ParseParams, TypeOf, ZodError, ZodTypeAny } from 'zod'
 
 import { ObjectType, ObjectTypeOptions } from '@nestjs/graphql'
 
@@ -55,6 +55,16 @@ export interface IModelFromZodOptions<T extends ZodTypeAny>
    * @memberof IModelFromZodOptions
    */
   keepZodObject?: boolean
+
+  /**
+   * Indicates whether or not the successfully parsed objects should
+   * be converted to their dynamically built class instances.
+   *
+   * @type {boolean}
+   * @memberof IModelFromZodOptions
+   * @default true
+   */
+  parseToInstance?: boolean
 
   /**
    * A function that can be used for providing a default value for a property

@@ -3,9 +3,11 @@ This file contains the changes made to the package.
 
 The sections are in descending order of the change date.
 
-## [3.3.0] - 2023-07-05
+## [3.3.0] - 2023-09-28
 ### Added
 - Support for `NativeEnum`s.
+- `parseToInstance` option to let users/consumers choose if the successful
+`zod` validation should parse to the instance of dynamically generated class.
 
 ## [3.2.0] - 2023-05-16
 ### Added

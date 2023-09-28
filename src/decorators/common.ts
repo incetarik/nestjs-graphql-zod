@@ -46,7 +46,18 @@ export function MethodWithZodModel<T extends AnyZodObject>(
     let newDescriptor = descriptor || {}
 
     const originalFunction = descriptor?.value ?? target[ methodName ]
-    const decoratedFunction = decorateWithZodInput(originalFunction, input, model)
+
+    let decorationProps: typeof nameOrOptions
+    if (typeof nameOrOptions === 'string') {
+      decorationProps = {
+        zod: { parseToInstance: true },
+      }
+    }
+    else {
+      decorationProps = nameOrOptions
+    }
+
+    const decoratedFunction = decorateWithZodInput(originalFunction, input, model, decorationProps)
 
     newDescriptor.value = decoratedFunction
 
