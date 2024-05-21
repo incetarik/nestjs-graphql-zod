@@ -307,6 +307,7 @@ export module getFieldInfoFromZod {
     ZodBoolean,
     ZodDefault,
     ZodEnum,
+    ZodNativeEnum,
     ZodNullable,
     ZodNumber,
     ZodObject,
